@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module StatusesHelper
+  include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::SanitizeHelper
+
   EMBEDDED_CONTROLLER = 'statuses'
   EMBEDDED_ACTION = 'embed'
 
@@ -50,14 +53,57 @@ module StatusesHelper
   end
 
   def status_description(status)
-    components = [[media_summary(status), status_text_summary(status)].compact_blank.join(' · ')]
+    components = []
 
-    if status.spoiler_text.blank?
-      components << status.text
-      components << poll_summary(status)
+    # Priority 1: Actual text content (most important for mobile)
+    if status.text.present? && status.text.strip.length > 0
+      clean_text = strip_tags(status.text).strip.gsub(/\s+/, ' ')
+      # Shorter for mobile compatibility
+      truncated_text = truncate(clean_text, length: 120, omission: '…')
+      components << truncated_text if truncated_text.present?
     end
 
-    components.compact_blank.join("\n\n")
+    # Priority 2: Content warning (if present)
+    if status.spoiler_text.present?
+      components << "Content Warning: #{status.spoiler_text}"
+    end
+
+    # Priority 3: Poll information (simplified, no emojis)
+    if status.preloadable_poll
+      poll_options = status.preloadable_poll.options.first(2).map { |o| o }.join(", ")
+      if status.preloadable_poll.options.length > 2
+        poll_options += " (+#{status.preloadable_poll.options.length - 2} more)"
+      end
+      components << "Poll: #{poll_options}"
+    end
+
+    # Priority 4: Media description (only if no text content)
+    if components.empty? && status.with_media?
+      media_count = status.ordered_media_attachments.count
+      media_types = status.ordered_media_attachments.map(&:type).uniq
+
+      if media_types.include?('image')
+        description_text = "#{status.account.display_name} shared #{media_count == 1 ? 'an image' : "#{media_count} images"}"
+      elsif media_types.include?('video')
+        description_text = "#{status.account.display_name} shared #{media_count == 1 ? 'a video' : "#{media_count} videos"}"
+      elsif media_types.include?('audio')
+        description_text = "#{status.account.display_name} shared an audio file"
+      else
+        description_text = "#{status.account.display_name} shared media content"
+      end
+
+      components << description_text
+    end
+
+    # Priority 5: Fallback for empty posts
+    if components.empty?
+      components << "#{status.account.display_name} posted on #{site_title}"
+    end
+
+    result = components.compact_blank.join(" | ")
+
+    # Mobile-optimized length
+    truncate(result, length: 120, omission: '…')
   end
 
   def stream_link_target

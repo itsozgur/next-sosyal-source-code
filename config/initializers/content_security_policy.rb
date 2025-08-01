@@ -12,15 +12,20 @@ policy = ContentSecurityPolicy.new
 assets_host = policy.assets_host
 media_hosts = policy.media_hosts
 
+additional_img_sources = [
+  ENV["AUTH_URL"],
+  ENV["REACT_APP_SIGNUP_URL"]
+].compact
+
 Rails.application.config.content_security_policy do |p|
   p.base_uri        :none
   p.default_src     :none
   p.frame_ancestors :none
-  p.font_src        :self, assets_host
-  p.img_src         :self, :data, :blob, *media_hosts
-  p.style_src       :self, assets_host
-  p.media_src       :self, :data, *media_hosts
-  p.manifest_src    :self, assets_host
+  p.font_src        :self, assets_host, "https://fonts.gstatic.com", Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
+  p.img_src         :self, :data, :blob, :https, :http, *media_hosts, Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
+  p.style_src       :self, assets_host, "https://fonts.googleapis.com", Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
+  p.media_src       :self, :data, *media_hosts, Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
+  p.manifest_src    :self, assets_host, Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
 
   if policy.sso_host.present?
     p.form_action :self, policy.sso_host
@@ -35,11 +40,11 @@ Rails.application.config.content_security_policy do |p|
     webpacker_public_host = ENV.fetch('WEBPACKER_DEV_SERVER_PUBLIC', Webpacker.config.dev_server[:public])
     front_end_build_urls = %w(ws http).map { |protocol| "#{protocol}#{Webpacker.dev_server.https? ? 's' : ''}://#{webpacker_public_host}" }
 
-    p.connect_src :self, :data, :blob, *media_hosts, Rails.configuration.x.streaming_api_base_url, *front_end_build_urls
+    p.connect_src :self, :data, :blob, *media_hosts, Rails.configuration.x.streaming_api_base_url, *front_end_build_urls, Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
     p.script_src  :self, :unsafe_inline, :unsafe_eval, assets_host
     p.frame_src   :self, :https, :http
   else
-    p.connect_src :self, :data, :blob, *media_hosts, Rails.configuration.x.streaming_api_base_url
+    p.connect_src :self, :data, :blob, *media_hosts, Rails.configuration.x.streaming_api_base_url, Rails.configuration.x.cdn_url, Rails.configuration.x.auth_url, Rails.configuration.x.auth_cdn_url
     p.script_src  :self, assets_host, "'wasm-unsafe-eval'"
     p.frame_src   :self, :https
   end

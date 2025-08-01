@@ -123,7 +123,7 @@ en-GB:
         admin/accounts: Administration of accounts
         admin/all: All administrative functions
         admin/reports: Administration of reports
-        all: Full access to your Mastodon account
+        all: Full access to your account
         blocks: Blocks
         bookmarks: Bookmarks
         conversations: Conversations
@@ -136,7 +136,7 @@ en-GB:
         media: Media attachments
         mutes: Mutes
         notifications: Notifications
-        profile: Your Mastodon profile
+        profile: Your profile
         push: Push notifications
         reports: Reports
         search: Search

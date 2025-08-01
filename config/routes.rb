@@ -45,6 +45,7 @@ Rails.application.routes.draw do
     /followed_tags
     /statuses/(*any)
     /deck/(*any)
+    /scheduledposts
   ).freeze
 
   root 'home#index'
@@ -148,6 +149,7 @@ Rails.application.routes.draw do
       "/#{params[:encoded_path].gsub('%40', '@')}"
     }
   end
+  get 'auth/proxy_callback', to: 'auth/proxy_callback#callback'
 
   constraints(username: %r{[^@/.]+}) do
     with_options to: 'accounts#show' do

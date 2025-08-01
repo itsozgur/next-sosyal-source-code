@@ -27,6 +27,12 @@ import {
   UNBOOKMARK_SUCCESS,
   PIN_SUCCESS,
   UNPIN_SUCCESS,
+  QUOTES_FETCH_REQUEST,
+  QUOTES_FETCH_SUCCESS,
+  QUOTES_FETCH_FAIL,
+  QUOTES_EXPAND_REQUEST,
+  QUOTES_EXPAND_SUCCESS,
+  QUOTES_EXPAND_FAIL,
 } from '../actions/interactions';
 import {
   PINNED_STATUSES_FETCH_SUCCESS,
@@ -63,6 +69,7 @@ const initialState = ImmutableMap({
     loaded: false,
     items: ImmutableOrderedSet(),
   }),
+  quotes: ImmutableMap(),
 });
 
 const normalizeList = (state, listType, statuses, next) => {
@@ -74,12 +81,39 @@ const normalizeList = (state, listType, statuses, next) => {
   }));
 };
 
+const normalizeNestedList = (state, path, statuses, next) => {
+  return state.setIn(path, ImmutableMap({
+    next,
+    loaded: true,
+    isLoading: false,
+    items: ImmutableOrderedSet(statuses.map(item => item.id)),
+  }));
+};
+
+const initializeNestedList = (state, path) => {
+  if (!state.hasIn(path)) {
+    return state.setIn(path, ImmutableMap({
+      next: null,
+      loaded: false,
+      isLoading: false,
+      items: ImmutableOrderedSet(),
+    }));
+  }
+  return state;
+};
+
 const appendToList = (state, listType, statuses, next) => {
   return state.update(listType, listMap => listMap.withMutations(map => {
     map.set('next', next);
     map.set('isLoading', false);
     map.set('items', map.get('items').union(statuses.map(item => item.id)));
   }));
+};
+
+const appendToNestedList = (state, path, statuses, next) => {
+  return state.updateIn(path, map => {
+    return map.set('next', next).set('isLoading', false).update('items', list => list.union(statuses.map(item => item.id)));
+  });
 };
 
 const prependOneToList = (state, listType, status) => {
@@ -142,6 +176,16 @@ export default function statusLists(state = initialState, action) {
     return prependOneToList(state, 'pins', action.status);
   case UNPIN_SUCCESS:
     return removeOneFromList(state, 'pins', action.status);
+  case QUOTES_FETCH_REQUEST:
+  case QUOTES_EXPAND_REQUEST:
+    return initializeNestedList(state, ['quotes', action.id]).setIn(['quotes', action.id, 'isLoading'], true);
+  case QUOTES_FETCH_FAIL:
+  case QUOTES_EXPAND_FAIL:
+    return state.setIn(['quotes', action.id, 'isLoading'], false);
+  case QUOTES_FETCH_SUCCESS:
+    return normalizeNestedList(state, ['quotes', action.id], action.statuses, action.next);
+  case QUOTES_EXPAND_SUCCESS:
+    return appendToNestedList(state, ['quotes', action.id], action.statuses, action.next);
   case blockAccountSuccess.type:
   case muteAccountSuccess.type:
     return state.updateIn(['trending', 'items'], ImmutableOrderedSet(), list => list.filterNot(statusId => action.payload.statuses.getIn([statusId, 'account']) === action.payload.relationship.id));

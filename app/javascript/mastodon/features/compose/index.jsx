@@ -12,17 +12,17 @@ import { connect } from 'react-redux';
 import spring from 'react-motion/lib/spring';
 
 import PeopleIcon from '@/material-icons/400-24px/group.svg?react';
-import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home.svg?react';
 import LogoutIcon from '@/material-icons/400-24px/logout.svg?react';
 import MenuIcon from '@/material-icons/400-24px/menu.svg?react';
-import NotificationsIcon from '@/material-icons/400-24px/notifications-fill.svg?react';
+import NotificationsIcon from '@/material-icons/400-24px/notifications.svg?react';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import SettingsIcon from '@/material-icons/400-24px/settings-fill.svg?react';
 import { openModal } from 'mastodon/actions/modal';
 import Column from 'mastodon/components/column';
 import { Icon }  from 'mastodon/components/icon';
 
-import elephantUIPlane from '../../../images/elephant_ui_plane.svg';
+
 import { changeComposing, mountCompose, unmountCompose } from '../../actions/compose';
 import { mascot } from '../../initial_state';
 import { isMobile } from '../../is_mobile';
@@ -109,8 +109,8 @@ class Compose extends PureComponent {
             {!columns.some(column => column.get('id') === 'PUBLIC') && (
               <Link to='/public' className='drawer__tab' title={intl.formatMessage(messages.public)} aria-label={intl.formatMessage(messages.public)}><Icon id='globe' icon={PublicIcon} /></Link>
             )}
-            <a href='/settings/preferences' className='drawer__tab' title={intl.formatMessage(messages.preferences)} aria-label={intl.formatMessage(messages.preferences)}><Icon id='cog' icon={SettingsIcon} /></a>
-            <a href='/auth/sign_out' className='drawer__tab' title={intl.formatMessage(messages.logout)} aria-label={intl.formatMessage(messages.logout)} onClick={this.handleLogoutClick}><Icon id='sign-out' icon={LogoutIcon} /></a>
+            <a href='/settings/preferences' className='drawer__tab' title={intl.formatMessage(messages.preferences)} aria-label={intl.formatMessage(messages.preferences)} data-testid='index-drawer__tab-a'><Icon id='cog' icon={SettingsIcon} /></a>
+            <button type='button' className='drawer__tab' title={intl.formatMessage(messages.logout)} aria-label={intl.formatMessage(messages.logout)} onClick={this.handleLogoutClick}><Icon id='sign-out' icon={LogoutIcon} /></button>
           </nav>
 
           {multiColumn && <SearchContainer /> }
@@ -119,9 +119,9 @@ class Compose extends PureComponent {
             <div className='drawer__inner' onFocus={this.onFocus}>
               <ComposeFormContainer autoFocus={!isMobile(window.innerWidth)} />
 
-              <div className='drawer__inner__mastodon'>
+              {/* <div className='drawer__inner__mastodon'>
                 <img alt='' draggable='false' src={mascot || elephantUIPlane} />
-              </div>
+              </div> */}
             </div>
 
             <Motion defaultStyle={{ x: -100 }} style={{ x: spring(showSearch ? 0 : -100, { stiffness: 210, damping: 20 }) }}>

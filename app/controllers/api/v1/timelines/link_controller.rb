@@ -18,7 +18,7 @@ class Api::V1::Timelines::LinkController < Api::V1::Timelines::BaseController
   private
 
   def set_preview_card
-    @preview_card = PreviewCard.joins(:trend).merge(PreviewCardTrend.allowed).find_by!(url: params[:url])
+    @preview_card = PreviewCard.find_by!(url: params[:url])
   end
 
   def set_statuses

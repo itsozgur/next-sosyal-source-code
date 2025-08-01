@@ -21,6 +21,7 @@ import {
   TIMELINE_GAP,
   TIMELINE_SUGGESTIONS,
   disconnectTimeline,
+  TIMELINE_DELETE,
 } from '../actions/timelines';
 import { compareId } from '../compare_id';
 
@@ -64,7 +65,7 @@ const expandNormalizedTimeline = (state, timeline, statuses, next, isPartial, is
         // and some items in the timeline may not be properly ordered.
 
         // However, we know that `newIds.last()` is the oldest item that was requested and that
-        // there is no “hole” between `newIds.last()` and `newIds.first()`.
+        // there is no "hole" between `newIds.last()` and `newIds.first()`.
 
         // First, find the furthest (if properly sorted, oldest) item in the timeline that is
         // newer than the oldest fetched one, as it's most likely that it delimits the gap.
@@ -104,19 +105,24 @@ const expandNormalizedTimeline = (state, timeline, statuses, next, isPartial, is
 };
 
 const updateTimeline = (state, timeline, status, usePendingItems) => {
-  const top = state.getIn([timeline, 'top']);
+  if (!state.has(timeline)) {
+    state = state.set(timeline, initialTimeline);
+  }
 
-  if (usePendingItems || !state.getIn([timeline, 'pendingItems']).isEmpty()) {
-    if (state.getIn([timeline, 'pendingItems'], ImmutableList()).includes(status.get('id')) || state.getIn([timeline, 'items'], ImmutableList()).includes(status.get('id'))) {
+  const top = state.getIn([timeline, 'top']);
+  const pendingItems = state.getIn([timeline, 'pendingItems']);
+
+  if (usePendingItems || (pendingItems && !pendingItems.isEmpty())) {
+    if ((pendingItems && pendingItems.includes(status.get('id'))) || state.getIn([timeline, 'items'], ImmutableList()).includes(status.get('id'))) {
       return state;
     }
 
     return state.update(timeline, initialTimeline, map => map.update('pendingItems', list => list.unshift(status.get('id'))).update('unread', unread => unread + 1));
   }
 
-  const ids        = state.getIn([timeline, 'items'], ImmutableList());
+  const ids = state.getIn([timeline, 'items'], ImmutableList());
   const includesId = ids.includes(status.get('id'));
-  const unread     = state.getIn([timeline, 'unread'], 0);
+  const unread = state.getIn([timeline, 'unread'], 0);
 
   if (includesId) {
     return state;
@@ -202,6 +208,10 @@ export default function timelines(state = initialState, action) {
     return expandNormalizedTimeline(state, action.timeline, fromJS(action.statuses), action.next, action.partial, action.isLoadingRecent, action.usePendingItems);
   case TIMELINE_UPDATE:
     return updateTimeline(state, action.timeline, fromJS(action.status), action.usePendingItems);
+  case TIMELINE_DELETE:
+    return state.update(action.timeline, initialTimeline, map => 
+      map.update('items', items => items.filter(id => id !== action.statusId))
+    );
   case timelineDelete.type:
     return deleteStatus(state, action.payload.statusId, action.payload.references, action.payload.reblogOf);
   case TIMELINE_CLEAR:

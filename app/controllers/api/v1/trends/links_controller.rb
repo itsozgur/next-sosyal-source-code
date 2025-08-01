@@ -28,9 +28,45 @@ class Api::V1::Trends::LinksController < Api::BaseController
              end
   end
 
-  def links_from_trends
-    scope = Trends.links.query.allowed.in_locale(content_locale)
-    scope = scope.filtered_for(current_account) if user_signed_in?
+    def links_from_trends
+    target_username = ENV['TRENDS_FOLLOWING_FEED_USERNAME'] || 'sosyada'
+    target_account = Account.find_by(username: target_username)
+    
+    if target_account.nil?
+      return PreviewCard.none
+    end
+
+    following_account_ids = target_account.following.pluck(:id)
+    
+    if following_account_ids.empty?
+      return PreviewCard.none
+    end
+
+    statuses = Status.where(account_id: following_account_ids)
+                     .public_visibility
+                     .without_replies
+                     .without_reblogs
+                     .joins(:account)
+                     .merge(Account.without_suspended.without_silenced)
+    
+    if user_signed_in?
+      statuses = statuses.not_excluded_by_account(current_account)
+                         .not_domain_blocked_by_account(current_account)
+    end
+
+    status_ids = statuses.pluck(:id)
+    
+    if status_ids.empty?
+      return PreviewCard.none
+    end
+
+
+    simple_scope = PreviewCard.joins(:preview_cards_statuses)
+                              .where(preview_cards_statuses: { status_id: status_ids })
+
+    scope = simple_scope.distinct.order('preview_cards.id DESC')
+
+
     scope
   end
 

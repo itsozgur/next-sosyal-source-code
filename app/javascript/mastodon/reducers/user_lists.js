@@ -53,6 +53,12 @@ import {
   FAVOURITES_EXPAND_REQUEST,
   FAVOURITES_EXPAND_SUCCESS,
   FAVOURITES_EXPAND_FAIL,
+  QUOTERS_FETCH_REQUEST,
+  QUOTERS_FETCH_SUCCESS,
+  QUOTERS_FETCH_FAIL,
+  QUOTERS_EXPAND_REQUEST,
+  QUOTERS_EXPAND_SUCCESS,
+  QUOTERS_EXPAND_FAIL,
 } from '../actions/interactions';
 import {
   MUTES_FETCH_REQUEST,
@@ -75,6 +81,7 @@ const initialState = ImmutableMap({
   following: initialListState,
   reblogged_by: initialListState,
   favourited_by: initialListState,
+  quoted_by: initialListState,
   follow_requests: initialListState,
   blocks: initialListState,
   mutes: initialListState,
@@ -156,6 +163,16 @@ export default function userLists(state = initialState, action) {
   case FAVOURITES_FETCH_FAIL:
   case FAVOURITES_EXPAND_FAIL:
     return state.setIn(['favourited_by', action.id, 'isLoading'], false);
+  case QUOTERS_FETCH_SUCCESS:
+    return normalizeList(state, ['quoted_by', action.id], action.accounts, action.next);
+  case QUOTERS_EXPAND_SUCCESS:
+    return appendToList(state, ['quoted_by', action.id], action.accounts, action.next);
+  case QUOTERS_FETCH_REQUEST:
+  case QUOTERS_EXPAND_REQUEST:
+    return state.setIn(['quoted_by', action.id, 'isLoading'], true);
+  case QUOTERS_FETCH_FAIL:
+  case QUOTERS_EXPAND_FAIL:
+    return state.setIn(['quoted_by', action.id, 'isLoading'], false);
   case notificationsUpdate.type:
     return action.payload.notification.type === 'follow_request' ? normalizeFollowRequest(state, action.payload.notification) : state;
   case FOLLOW_REQUESTS_FETCH_SUCCESS:

@@ -13,6 +13,8 @@ namespace :settings do
     resource :other, only: [:show, :update], controller: :other
   end
 
+  resource :feedback, only: [:show, :update], controller: 'preferences/feedback'
+
   resources :imports, only: [:index, :show, :destroy, :create] do
     member do
       post :confirm

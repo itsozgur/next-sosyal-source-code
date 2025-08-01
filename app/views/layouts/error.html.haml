@@ -8,9 +8,12 @@
     = theme_style_tags Setting.default_settings['theme']
     = javascript_pack_tag 'common', crossorigin: 'anonymous'
     = javascript_pack_tag 'error', crossorigin: 'anonymous'
+    %link{ href: 'https://fonts.googleapis.com/css2?family=Russo+One&family=Sansita&family=Song+Myung&family=Quantico&family=Nerko+One&family=Atomic+Age&family=Schoolbell&family=Sacramento&display=swap', rel: 'stylesheet' }/
+    %link{ href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap', rel: 'stylesheet' }/
+
   %body.error
-    .dialog
-      .dialog__illustration
-        %img{ alt: Setting.default_settings['site_title'], src: '/oops.png' }/
-      .dialog__message
-        %h1= yield :content
+    .error-page
+      .error-content
+        %img.error-image{ alt: Setting.default_settings['site_title'], src: '/404.png', style: 'width: 30px !important; height: 30px !important;' }/
+        .error-message= yield :content
+        %button.return-button{ onclick: "window.location.href='/'", data: { action: 'return-home' } }= t('errors.return_home', default: 'Return Home')

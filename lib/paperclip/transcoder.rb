@@ -5,7 +5,7 @@ module Paperclip
   # to check when uploaded videos are actually gifv's
   class Transcoder < Paperclip::Processor
     # This is the H.264 "High" value taken from https://www.dr-lex.be/info-stuff/videocalc.html
-    BITS_PER_PIXEL = 0.11
+    BITS_PER_PIXEL = 0.08
 
     def initialize(file, options = {}, attachment = nil)
       super

@@ -167,6 +167,13 @@ namespace :admin do
   resource :follow_recommendations, only: [:show, :update]
   resources :tags, only: [:index, :show, :update]
 
+  resources :badges, only: [:index, :new, :create, :destroy] do
+    member do
+      post :assign_to_user
+      delete :remove_from_user
+    end
+  end
+  
   namespace :trends do
     resources :links, only: [:index] do
       collection do

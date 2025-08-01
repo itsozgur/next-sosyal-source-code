@@ -23,12 +23,35 @@ class SearchQueryTransformer < Parslet::Transform
     end
 
     def request
-      search = Chewy::Search::Request.new(*indexes).filter(default_filter)
-
-      must_clauses.each { |clause| search = search.query.must(clause.to_query) }
-      must_not_clauses.each { |clause| search = search.query.must_not(clause.to_query) }
+      search = Chewy::Search::Request.new(*indexes)
+      search = search.filter(default_filter)
+      base_bool = {}
+      m  = must_clauses.map(&:to_query)
+      mn = must_not_clauses.map(&:to_query)
+      base_bool[:must]     = m  unless m.empty?
+      base_bool[:must_not] = mn unless mn.empty?
+      # Boost contents created within 14 days
+      fs_query = {
+        function_score: {
+          query: (base_bool.empty? ? { match_all: {} } : { bool: base_bool }),
+          functions: [
+            {
+              gauss: {
+                created_at: {
+                  origin: 'now',
+                  scale:  '14d',
+                  offset: '7d',
+                  decay:  0.5
+                }
+              }
+            }
+          ],
+          score_mode: 'avg',
+          boost_mode: 'multiply'
+        }
+      }
+      search = search.query(fs_query)
       filter_clauses.each { |clause| search = search.filter(**clause.to_query) }
-
       search
     end
 
@@ -113,20 +136,71 @@ class SearchQueryTransformer < Parslet::Transform
     end
   end
 
+
   class TermClause
     attr_reader :operator, :term
 
+    FIELDS_STRICT = %w[
+      text.std^4
+      text.stemmed^2
+    ].freeze
+
+    FIELD_PREFIX = 'text^3'.freeze
+
     def initialize(operator, term)
       @operator = Operator.symbol(operator)
-      @term = term
+      @term     = term
     end
 
     def to_query
-      if @term.start_with?('#')
-        { match: { tags: { query: @term, operator: 'and' } } }
-      else
-        { multi_match: { type: 'most_fields', query: @term, fields: ['text', 'text.stemmed'], operator: 'and' } }
-      end
+      return hashtag_query if hashtag?
+
+      {
+        bool: {
+          should: [
+            strict_fuzzy_clause,
+            prefix_clause
+          ],
+          minimum_should_match: 1
+        }
+      }
+    end
+
+    private
+
+    def strict_fuzzy_clause
+      {
+        multi_match: {
+          query:          @term,
+          type:           'best_fields',
+          fields:         FIELDS_STRICT,
+          operator:       'and',
+          fuzziness:      'AUTO',
+          prefix_length:  1,
+          max_expansions: 50,
+          lenient:        true
+        }
+      }
+    end
+
+    def prefix_clause
+      {
+        multi_match: {
+          query:    @term,
+          type:     'bool_prefix',
+          fields:   [FIELD_PREFIX],
+          operator: 'and',
+          lenient:  true
+        }
+      }
+    end
+
+    def hashtag_query
+      { match: { tags: { query: @term, operator: 'and' } } }
+    end
+
+    def hashtag?
+      @term.start_with?('#')
     end
   end
 
@@ -226,15 +300,15 @@ class SearchQueryTransformer < Parslet::Transform
     end
 
     def date_from_term(term)
-      DateTime.iso8601(term) unless term.match?(EPOCH_RE) # This will raise Date::Error if the date is invalid
+      DateTime.iso8601(term) unless term.match?(EPOCH_RE)
       term
     end
   end
 
   rule(clause: subtree(:clause)) do
-    prefix   = clause[:prefix][:term].to_s.downcase if clause[:prefix]
+    prefix = clause[:prefix][:term].to_s.downcase if clause[:prefix]
     operator = clause[:operator]&.to_s
-    term     = clause[:phrase] ? clause[:phrase].map { |term| term[:term].to_s }.join(' ') : clause[:term].to_s
+    term = clause[:phrase] ? clause[:phrase].map { |term| term[:term].to_s }.join(' ') : clause[:term].to_s
 
     if clause[:prefix] && SUPPORTED_PREFIXES.include?(prefix)
       PrefixClause.new(prefix, operator, term, current_account: current_account)

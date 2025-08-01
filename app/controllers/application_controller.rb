@@ -47,6 +47,8 @@ class ApplicationController < ActionController::Base
 
   before_action :set_cache_control_defaults
 
+  before_action :authenticate_user_from_token!
+
   skip_before_action :verify_authenticity_token, only: :raise_not_found
 
   def raise_not_found
@@ -71,7 +73,23 @@ class ApplicationController < ActionController::Base
   end
 
   def require_functional!
-    redirect_to edit_user_registration_path unless current_user.functional?
+    return if current_user.functional?
+
+    respond_to do |format|
+      format.any do
+        redirect_to edit_user_registration_path
+      end
+
+      format.json do
+        if !current_user.confirmed?
+          render json: { error: 'Your login is missing a confirmed e-mail address' }, status: 403
+        elsif !current_user.approved?
+          render json: { error: 'Your login is currently pending approval' }, status: 403
+        elsif !current_user.functional?
+          render json: { error: 'Your login is currently disabled' }, status: 403
+        end
+      end
+    end
   end
 
   def skip_csrf_meta_tags?
@@ -181,4 +199,19 @@ class ApplicationController < ActionController::Base
   def set_cache_control_defaults
     response.cache_control.replace(private: true, no_store: true)
   end
+
+  def authenticate_user_from_token!
+    auth_header = request.headers['Authorization']
+    return if auth_header.blank?
+
+    token = auth_header.to_s.remove(/^Bearer /)
+
+    # Doorkeeper token doğrulaması
+    access_token = Doorkeeper::AccessToken.by_token(token)
+
+    if access_token&.accessible? && !access_token.expired?
+      User.find_by(id: access_token.resource_owner_id)
+    end
+  end
+
 end

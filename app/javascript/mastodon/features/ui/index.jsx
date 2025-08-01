@@ -47,6 +47,8 @@ import {
   Following,
   Reblogs,
   Favourites,
+  Quoters,
+  Quotes,
   DirectTimeline,
   HashtagTimeline,
   NotificationsWrapper,
@@ -68,6 +70,7 @@ import {
   Onboarding,
   About,
   PrivacyPolicy,
+  ScheduledStatuses,
 } from './util/async-components';
 import { ColumnsContextProvider } from './util/columns_context';
 import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
@@ -77,7 +80,7 @@ import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
 import '../../components/status';
 
 const messages = defineMessages({
-  beforeUnload: { id: 'ui.beforeunload', defaultMessage: 'Your draft will be lost if you leave Mastodon.' },
+  beforeUnload: { id: 'ui.beforeunload', defaultMessage: 'Your draft will be lost if you leave presenter.' },
 });
 
 const mapStateToProps = state => ({
@@ -228,6 +231,8 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/@:acct/:statusId' exact component={Status} content={children} />
             <WrappedRoute path='/@:acct/:statusId/reblogs' component={Reblogs} content={children} />
             <WrappedRoute path='/@:acct/:statusId/favourites' component={Favourites} content={children} />
+            <WrappedRoute path='/@:acct/:statusId/quoters' component={Quoters} content={children} />
+            <WrappedRoute path='/@:acct/:statusId/quotes' component={Quotes} content={children} />
 
             {/* Legacy routes, cannot be easily factored with other routes because they share a param name */}
             <WrappedRoute path='/timelines/tag/:id' component={HashtagTimeline} content={children} />
@@ -235,6 +240,8 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/statuses/:statusId' exact component={Status} content={children} />
             <WrappedRoute path='/statuses/:statusId/reblogs' component={Reblogs} content={children} />
             <WrappedRoute path='/statuses/:statusId/favourites' component={Favourites} content={children} />
+            <WrappedRoute path='/statuses/:statusId/quoters' component={Quoters} content={children} />
+            <WrappedRoute path='/statuses/:statusId/quotes' component={Quotes} content={children} />
 
             <WrappedRoute path='/follow_requests' component={FollowRequests} content={children} />
             <WrappedRoute path='/blocks' component={Blocks} content={children} />
@@ -242,6 +249,8 @@ class SwitchingColumnsArea extends PureComponent {
             <WrappedRoute path='/followed_tags' component={FollowedTags} content={children} />
             <WrappedRoute path='/mutes' component={Mutes} content={children} />
             <WrappedRoute path='/lists' component={Lists} content={children} />
+
+            <WrappedRoute path='/scheduledposts' component={ScheduledStatuses} content={children} />
 
             <Route component={BundleColumnError} />
           </WrappedSwitch>

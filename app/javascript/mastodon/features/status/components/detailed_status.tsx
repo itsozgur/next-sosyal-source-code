@@ -15,12 +15,14 @@ import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?re
 import { AnimatedNumber } from 'mastodon/components/animated_number';
 import { ContentWarning } from 'mastodon/components/content_warning';
 import EditedTimestamp from 'mastodon/components/edited_timestamp';
+import { FilterWarning } from 'mastodon/components/filter_warning';
 import type { StatusLike } from 'mastodon/components/hashtag_bar';
 import { getHashtagBarForStatus } from 'mastodon/components/hashtag_bar';
 import { Icon } from 'mastodon/components/icon';
 import { IconLogo } from 'mastodon/components/logo';
 import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
 import { VisibilityIcon } from 'mastodon/components/visibility_icon';
+import { me } from 'mastodon/initial_state';
 
 import { Avatar } from '../../../components/avatar';
 import { DisplayName } from '../../../components/display_name';
@@ -31,6 +33,7 @@ import scheduleIdleTask from '../../ui/util/schedule_idle_task';
 import Video from '../../video';
 
 import Card from './card';
+import QuotePreview from './quote_preview';
 
 interface VideoModalOptions {
   startTime: number;
@@ -68,6 +71,7 @@ export const DetailedStatus: React.FC<{
 }) => {
   const properStatus = status?.get('reblog') ?? status;
   const [height, setHeight] = useState(0);
+  const [showDespiteFilter, setShowDespiteFilter] = useState(false);
   const nodeRef = useRef<HTMLDivElement>();
 
   const handleOpenVideo = useCallback(
@@ -79,6 +83,10 @@ export const DetailedStatus: React.FC<{
     },
     [onOpenVideo, status],
   );
+
+  const handleFilterToggle = useCallback(() => {
+    setShowDespiteFilter(!showDespiteFilter);
+  }, [showDespiteFilter, setShowDespiteFilter]);
 
   const handleExpandedToggle = useCallback(() => {
     if (onToggleHidden) onToggleHidden(status);
@@ -117,6 +125,7 @@ export const DetailedStatus: React.FC<{
   }
 
   let media;
+  let linkPreview;
   let applicationLink;
   let reblogLink;
   let attachmentAspectRatio;
@@ -219,12 +228,14 @@ export const DetailedStatus: React.FC<{
         />
       );
     }
-  } else if (status.get('spoiler_text').length === 0) {
-    media = (
+  }
+
+  if (status.get('card') && status.get('media_attachments').size === 0) {
+    linkPreview = (
       <Card
         sensitive={status.get('sensitive')}
         onOpenMedia={onOpenMedia}
-        card={status.get('card', null)}
+        card={status.get('card')}
       />
     );
   }
@@ -238,6 +249,7 @@ export const DetailedStatus: React.FC<{
           href={status.getIn(['application', 'website'])}
           target='_blank'
           rel='noopener noreferrer'
+          data-testid='detailed_status-detailed-a'
         >
           {status.getIn(['application', 'name'])}
         </a>
@@ -254,44 +266,146 @@ export const DetailedStatus: React.FC<{
   if (['private', 'direct'].includes(status.get('visibility') as string)) {
     reblogLink = '';
   } else {
+    const isOwnStatus = status.getIn(['account', 'id']) === me;
+
     reblogLink = (
-      <Link
-        to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`}
-        className='detailed-status__link'
-      >
-        <span className='detailed-status__reblogs'>
-          <AnimatedNumber value={status.get('reblogs_count')} />
-        </span>
-        <FormattedMessage
-          id='status.reblogs'
-          defaultMessage='{count, plural, one {boost} other {boosts}}'
-          values={{ count: status.get('reblogs_count') }}
-        />
-      </Link>
+      <>
+        {isOwnStatus ? (
+          <Link
+            to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/reblogs`}
+            className='detailed-status__link'
+          >
+            <span className='detailed-status__reblogs'>
+              <AnimatedNumber
+                value={Number(status.get('reblogs_count') || 0)}
+              />
+            </span>
+            <FormattedMessage
+              id='status.reblogs'
+              defaultMessage='{count, plural, one {boost} other {boosts}}'
+              values={{ count: Number(status.get('reblogs_count') || 0) }}
+            />
+          </Link>
+        ) : (
+          <span className='detailed-status__link'>
+            <span className='detailed-status__reblogs'>
+              <AnimatedNumber
+                value={Number(status.get('reblogs_count') || 0)}
+              />
+            </span>
+            <FormattedMessage
+              id='status.reblogs'
+              defaultMessage='{count, plural, one {boost} other {boosts}}'
+              values={{ count: Number(status.get('reblogs_count') || 0) }}
+            />
+          </span>
+        )}
+        <>
+          {' · '}
+          {isOwnStatus ? (
+            <Link
+              to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/quotes`}
+              className='detailed-status__link'
+            >
+              <span className='detailed-status__quotes'>
+                <AnimatedNumber
+                  value={Number(status.get('quotes_count') || 0)}
+                />
+              </span>
+              <FormattedMessage
+                id='status.quotes'
+                defaultMessage='{count, plural, one {quote} other {quotes}}'
+                values={{ count: Number(status.get('quotes_count') || 0) }}
+              />
+            </Link>
+          ) : (
+            <span className='detailed-status__link'>
+              <span className='detailed-status__quotes'>
+                <AnimatedNumber
+                  value={Number(status.get('quotes_count') || 0)}
+                />
+              </span>
+              <FormattedMessage
+                id='status.quotes'
+                defaultMessage='{count, plural, one {quote} other {quotes}}'
+                values={{ count: Number(status.get('quotes_count') || 0) }}
+              />
+            </span>
+          )}
+        </>
+      </>
     );
   }
 
-  const favouriteLink = (
-    <Link
-      to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/favourites`}
-      className='detailed-status__link'
-    >
-      <span className='detailed-status__favorites'>
-        <AnimatedNumber value={status.get('favourites_count')} />
+  const favouriteLink =
+    status.getIn(['account', 'id']) === me ? (
+      <Link
+        to={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}/favourites`}
+        className='detailed-status__link'
+      >
+        <span className='detailed-status__favorites'>
+          <AnimatedNumber value={status.get('favourites_count')} />
+        </span>
+        <FormattedMessage
+          id='status.favourites'
+          defaultMessage='{count, plural, one {favorite} other {favorites}}'
+          values={{ count: status.get('favourites_count') }}
+        />
+      </Link>
+    ) : (
+      <span className='detailed-status__link'>
+        <span className='detailed-status__favorites'>
+          <AnimatedNumber value={status.get('favourites_count')} />
+        </span>
+        <FormattedMessage
+          id='status.favourites'
+          defaultMessage='{count, plural, one {favorite} other {favorites}}'
+          values={{ count: status.get('favourites_count') }}
+        />
+      </span>
+    );
+
+  const interactionsCount = (
+    <>
+      <span className='detailed-status__interactions'>
+        <AnimatedNumber value={status.get('views_count')} />
       </span>
       <FormattedMessage
-        id='status.favourites'
-        defaultMessage='{count, plural, one {favorite} other {favorites}}'
-        values={{ count: status.get('favourites_count') }}
+        id='status.interactions'
+        defaultMessage='{count, plural, one {interaction} other {interactions}}'
+        values={{ count: status.get('views_count') }}
       />
-    </Link>
+    </>
   );
 
   const { statusContentProps, hashtagBar } = getHashtagBarForStatus(
     status as StatusLike,
   );
+
+  const matchedFilters = status.get('matched_filters');
+
   const expanded =
-    !status.get('hidden') || status.get('spoiler_text').length === 0;
+    (!matchedFilters || showDespiteFilter) &&
+    (!status.get('hidden') || status.get('spoiler_text').length === 0);
+
+  // Check for quoted status from API response
+  const quotedStatus = status.get('quoted_status');
+  const hasQuotes = !!quotedStatus;
+  const hasMedia = status.get('media_attachments').size > 0;
+
+  // Render quote preview if quoted status exists
+  let quotePreview = null;
+  if (hasQuotes) {
+    quotePreview = (
+      <div className='quote-previews'>
+        <QuotePreview
+          quotedStatus={quotedStatus}
+          compact
+          onOpenMedia={onOpenMedia}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={outerStyle}>
@@ -328,16 +442,25 @@ export const DetailedStatus: React.FC<{
           )}
         </Link>
 
-        {status.get('spoiler_text').length > 0 && (
-          <ContentWarning
-            text={
-              status.getIn(['translation', 'spoilerHtml']) ||
-              status.get('spoilerHtml')
-            }
-            expanded={expanded}
-            onClick={handleExpandedToggle}
+        {matchedFilters && (
+          <FilterWarning
+            title={matchedFilters.join(', ')}
+            expanded={showDespiteFilter}
+            onClick={handleFilterToggle}
           />
         )}
+
+        {status.get('spoiler_text').length > 0 &&
+          (!matchedFilters || showDespiteFilter) && (
+            <ContentWarning
+              text={
+                status.getIn(['translation', 'spoilerHtml']) ||
+                status.get('spoilerHtml')
+              }
+              expanded={expanded}
+              onClick={handleExpandedToggle}
+            />
+          )}
 
         {expanded && (
           <>
@@ -347,7 +470,23 @@ export const DetailedStatus: React.FC<{
               {...(statusContentProps as any)}
             />
 
-            {media}
+            {/* Quote + Media: Media first, then quote preview */}
+            {hasQuotes && hasMedia ? (
+              <>
+                {media}
+                {quotePreview}
+              </>
+            ) : hasQuotes ? (
+              /* Quote only: Show quote preview */
+              quotePreview
+            ) : hasMedia ? (
+              /* Media only: Show media */
+              media
+            ) : null}
+
+            {/* Link preview for non-quote links */}
+            {!hasQuotes && linkPreview}
+
             {hashtagBar}
           </>
         )}
@@ -359,6 +498,7 @@ export const DetailedStatus: React.FC<{
               href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`}
               target='_blank'
               rel='noopener noreferrer'
+              data-testid='detailed_status-detailed-a'
             >
               <FormattedDate
                 value={new Date(status.get('created_at') as string)}
@@ -387,6 +527,8 @@ export const DetailedStatus: React.FC<{
             {reblogLink}
             {reblogLink && <>·</>}
             {favouriteLink}
+            {<div className='interactions-count-separator'>·</div>}
+            <div className='interactions-count'>{interactionsCount}</div>
           </div>
         </div>
       </div>

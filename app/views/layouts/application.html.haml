@@ -3,6 +3,7 @@
   %head
     %meta{ charset: 'utf-8' }/
     %meta{ name: 'viewport', content: 'width=device-width, initial-scale=1' }/
+    = yield :head_tags
 
     - if cdn_host?
       %link{ rel: 'dns-prefetch', href: cdn_host }/
@@ -12,7 +13,9 @@
       %link{ rel: 'dns-prefetch', href: storage_host }/
 
     - SiteUpload::FAVICON_SIZES.each do |size|
-      %link{ rel: 'icon', sizes: "#{size}x#{size}", href: favicon_path(size.to_i) || frontend_asset_path("icons/favicon-#{size}x#{size}.png"), type: 'image/png' }/
+      - custom_favicon = ENV.fetch('REACT_APP_FAVICON_URL', nil)
+      - fallback_path = favicon_path(size.to_i) || frontend_asset_path("icons/favicon-#{size}x#{size}.png")
+      %link{ rel: 'icon', sizes: "#{size}x#{size}", href: custom_favicon || fallback_path, type: 'image/png' }
 
     - SiteUpload::APPLE_ICON_SIZES.each do |size|
       %link{ rel: 'apple-touch-icon', sizes: "#{size}x#{size}", href: app_icon_path(size.to_i) || frontend_asset_path("icons/apple-touch-icon-#{size}x#{size}.png") }/
@@ -30,6 +33,7 @@
     = stylesheet_pack_tag 'inert', media: 'all', crossorigin: 'anonymous', id: 'inert-style'
 
     = javascript_pack_tag 'common', crossorigin: 'anonymous'
+    = javascript_pack_tag 'theme_detector', defer: true, crossorigin: 'anonymous'
     = preload_pack_asset "locale/#{I18n.locale}-json.js"
     = csrf_meta_tags unless skip_csrf_meta_tags?
     %meta{ name: 'style-nonce', content: request.content_security_policy_nonce }
@@ -38,9 +42,10 @@
 
     = yield :header_tags
 
+    %link{href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap", rel: "stylesheet"}
+
   %body{ class: body_classes }
     = content_for?(:content) ? yield(:content) : yield
 
     .logo-resources{ 'tabindex' => '-1', 'inert' => true, 'aria-hidden' => 'true' }
-      = inline_svg_tag 'logo-symbol-icon.svg'
       = inline_svg_tag 'logo-symbol-wordmark.svg'

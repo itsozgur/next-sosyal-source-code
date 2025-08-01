@@ -76,7 +76,7 @@ class CommunityTimeline extends PureComponent {
     const { dispatch, onlyMedia } = this.props;
     const { signedIn } = this.props.identity;
 
-    dispatch(expandCommunityTimeline({ onlyMedia }));
+    dispatch(expandCommunityTimeline({ onlyMedia, limit: 10 }));
 
     if (signedIn) {
       this.disconnect = dispatch(connectCommunityStream({ onlyMedia }));
@@ -93,7 +93,7 @@ class CommunityTimeline extends PureComponent {
         this.disconnect();
       }
 
-      dispatch(expandCommunityTimeline({ onlyMedia }));
+      dispatch(expandCommunityTimeline({ onlyMedia, limit: 10 }));
 
       if (signedIn) {
         this.disconnect = dispatch(connectCommunityStream({ onlyMedia }));
@@ -115,7 +115,7 @@ class CommunityTimeline extends PureComponent {
   handleLoadMore = maxId => {
     const { dispatch, onlyMedia } = this.props;
 
-    dispatch(expandCommunityTimeline({ maxId, onlyMedia }));
+    dispatch(expandCommunityTimeline({ maxId, onlyMedia, limit: 10 }));
   };
 
   render () {

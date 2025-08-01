@@ -41,6 +41,7 @@ class PostStatusService < BaseService
     return idempotency_duplicate if idempotency_given? && idempotency_duplicate?
 
     validate_media!
+    validate_language!
     preprocess_attributes!
 
     if scheduled?
@@ -81,6 +82,11 @@ class PostStatusService < BaseService
     # the media attachments when the status is created
     ApplicationRecord.transaction do
       @status.save!
+      if @status.quoted_status_id.present?
+        quoted = Status.find_by(id: @status.quoted_status_id)
+        quoted&.status_stat&.increment!(:quotes_count)
+        Rails.cache.delete("status:#{@status.quoted_status_id}:quotes")
+      end
     end
   end
 
@@ -137,8 +143,20 @@ class PostStatusService < BaseService
     not_found_ids = @options[:media_ids].map(&:to_i) - @media.map(&:id)
     raise Mastodon::ValidationError, I18n.t('media_attachments.validations.not_found', ids: not_found_ids.join(', ')) if not_found_ids.any?
 
-    raise Mastodon::ValidationError, I18n.t('media_attachments.validations.images_and_video') if @media.size > 1 && @media.find(&:audio_or_video?)
+    # raise Mastodon::ValidationError, I18n.t('media_attachments.validations.images_and_video') if @media.size > 1 && @media.find(&:audio_or_video?)
     raise Mastodon::ValidationError, I18n.t('media_attachments.validations.not_ready') if @media.any?(&:not_processed?)
+  end
+
+  def validate_language!
+    return if @options[:language].blank?
+
+    # Restrict posting to only Turkish and English
+    allowed_languages = %w[tr en]
+    provided_language = @options[:language].to_s.downcase
+
+    unless allowed_languages.include?(provided_language)
+      raise Mastodon::ValidationError, I18n.t('statuses.validations.unsupported_language', allowed: allowed_languages.join(', '))
+    end
   end
 
   def process_mentions_service
@@ -196,6 +214,7 @@ class PostStatusService < BaseService
       language: valid_locale_cascade(@options[:language], @account.user&.preferred_posting_language, I18n.default_locale),
       application: @options[:application],
       rate_limit: @options[:with_rate_limit],
+      quoted_status_id: @options[:quoted_status_id]
     }.compact
   end
 

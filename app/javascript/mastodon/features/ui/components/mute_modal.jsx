@@ -85,7 +85,7 @@ export const MuteModal = ({ accountId, acct }) => {
 
           <div>
             <h1><FormattedMessage id='mute_modal.title' defaultMessage='Mute user?' /></h1>
-            <div>@{acct}</div>
+            <div>@{acct.split('@')[0]}</div>
           </div>
         </div>
 

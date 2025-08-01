@@ -137,7 +137,7 @@ export const connectTimelineStream = (timelineId, channelName, params = {}, opti
  * @param {Function} dispatch
  */
 async function refreshHomeTimelineAndNotification(dispatch) {
-  await dispatch(expandHomeTimeline({ maxId: undefined }));
+  await dispatch(expandHomeTimeline({ maxId: undefined, limit: 10 }));
 
   // TODO: polling for merged notifications
   try {

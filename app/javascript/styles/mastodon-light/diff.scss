@@ -455,7 +455,7 @@
 .emoji-mart-search input,
 .language-dropdown__dropdown .emoji-mart-search input,
 .poll__option input[type='text'] {
-  background: darken($ui-base-color, 10%);
+  background: var(--input-background-color);
 }
 
 .inline-follow-suggestions {
@@ -534,4 +534,9 @@ a.sparkline {
 
 ::-webkit-scrollbar-thumb {
   opacity: 0.25;
+}
+
+// Override react-toggle-thumb background-color for light mode
+.react-toggle-thumb {
+  background-color: $white;
 }

@@ -112,7 +112,15 @@ class AccountTimeline extends ImmutablePureComponent {
     }
 
     dispatch(fetchFeaturedTags(accountId));
-    dispatch(expandAccountTimeline(accountId, { withReplies, tagged }));
+    
+    // Kendi profilini görüntülerken limit=10 gönder
+    const isOwnProfile = accountId === me;
+    const timelineParams = { withReplies, tagged };
+    if (isOwnProfile) {
+      timelineParams.limit = 10;
+    }
+    
+    dispatch(expandAccountTimeline(accountId, timelineParams));
 
     if (accountId === me) {
       dispatch(connectTimeline(`account:${me}`));
@@ -140,7 +148,15 @@ class AccountTimeline extends ImmutablePureComponent {
       if (!withReplies) {
         dispatch(expandAccountFeaturedTimeline(accountId, { tagged }));
       }
-      dispatch(expandAccountTimeline(accountId, { withReplies, tagged }));
+      
+      // Kendi profilini görüntülerken limit=10 gönder
+      const isOwnProfile = accountId === me;
+      const timelineParams = { withReplies, tagged };
+      if (isOwnProfile) {
+        timelineParams.limit = 10;
+      }
+      
+      dispatch(expandAccountTimeline(accountId, timelineParams));
     }
 
     if (prevProps.accountId === me && accountId !== me) {
@@ -157,7 +173,16 @@ class AccountTimeline extends ImmutablePureComponent {
   }
 
   handleLoadMore = maxId => {
-    this.props.dispatch(expandAccountTimeline(this.props.accountId, { maxId, withReplies: this.props.withReplies, tagged: this.props.params.tagged }));
+    const { accountId, withReplies, params: { tagged } } = this.props;
+    
+    // Kendi profilini görüntülerken limit=10 gönder
+    const isOwnProfile = accountId === me;
+    const timelineParams = { maxId, withReplies, tagged };
+    if (isOwnProfile) {
+      timelineParams.limit = 10;
+    }
+    
+    this.props.dispatch(expandAccountTimeline(accountId, timelineParams));
   };
 
   render () {

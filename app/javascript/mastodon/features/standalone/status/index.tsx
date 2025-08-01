@@ -63,7 +63,7 @@ const Embed: React.FC<{ id: string }> = ({ id }) => {
         target='_blank'
         rel='noreferrer noopener'
         aria-label=''
-      />
+      data-testid="index-embed__overlay-a" />
     </div>
   );
 };

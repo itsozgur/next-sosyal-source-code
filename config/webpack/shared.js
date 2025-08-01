@@ -66,7 +66,18 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.EnvironmentPlugin(JSON.parse(JSON.stringify(env))),
+    new webpack.EnvironmentPlugin({
+      ...JSON.parse(JSON.stringify(env)),
+      ...process.env
+    }),
+    new webpack.DefinePlugin({
+      'process.env': Object.keys(process.env)
+        .filter(key => key.startsWith('REACT_APP_'))
+        .reduce((acc, key) => {
+          acc[key] = JSON.stringify(process.env[key]);
+          return acc;
+        }, {})
+    }),
     new webpack.NormalModuleReplacementPlugin(
       /^history\//, (resource) => {
         // temporary fix for https://github.com/ReactTraining/react-router/issues/5576

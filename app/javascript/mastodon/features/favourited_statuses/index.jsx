@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 
 import { debounce } from 'lodash';
 
-import StarIcon from '@/material-icons/400-24px/star-fill.svg?react';
+import StarIcon from '@/material-icons/400-24px/star.svg?react';
 import { addColumn, removeColumn, moveColumn } from 'mastodon/actions/columns';
 import { fetchFavouritedStatuses, expandFavouritedStatuses } from 'mastodon/actions/favourites';
 import ColumnHeader from 'mastodon/components/column_header';
@@ -99,6 +99,7 @@ class Favourites extends ImmutablePureComponent {
           onLoadMore={this.handleLoadMore}
           emptyMessage={emptyMessage}
           bindToDocument={!multiColumn}
+          timelineId='favourites'
         />
 
         <Helmet>

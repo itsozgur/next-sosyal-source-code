@@ -11,6 +11,8 @@ import {
   replyCompose,
   mentionCompose,
   directCompose,
+  updateScheduledPost,
+  deleteScheduledPost,
 } from '../actions/compose';
 import {
   initDomainBlockModal,
@@ -214,6 +216,25 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
         url: status.get('uri'),
       },
     }));
+  },
+
+  onUpdateScheduledPost (id) {
+    dispatch(updateScheduledPost(id));
+  },
+
+  onDeleteScheduledPost (id, withRedraft = false) {
+    if (!deleteModal) {
+      dispatch(deleteScheduledPost(id));
+    } else {
+      dispatch(openModal({ 
+        modalType: 'CONFIRM_DELETE_STATUS', 
+        modalProps: { 
+          statusId: id, 
+          withRedraft,
+          isScheduledPost: true 
+        } 
+      }));
+    }
   },
 
 });

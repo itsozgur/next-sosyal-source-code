@@ -7,6 +7,7 @@ import type {
   ApiAccountFieldJSON,
   ApiAccountRoleJSON,
   ApiAccountJSON,
+  Badge,
 } from 'mastodon/api_types/accounts';
 import type { ApiCustomEmojiJSON } from 'mastodon/api_types/custom_emoji';
 import emojify from 'mastodon/features/emoji/emoji';
@@ -43,10 +44,10 @@ const AccountRoleFactory = ImmutableRecord<AccountRoleShape>({
   name: '',
 });
 
-// Account
+
 export interface AccountShape
   extends Required<
-    Omit<ApiAccountJSON, 'emojis' | 'fields' | 'roles' | 'moved'>
+    Omit<ApiAccountJSON, 'emojis' | 'fields' | 'roles' | 'moved' | 'badges'>
   > {
   emojis: List<CustomEmoji>;
   fields: List<AccountField>;
@@ -56,6 +57,7 @@ export interface AccountShape
   note_plain: string | null;
   hidden: boolean;
   moved: string | null;
+  badges: List<Badge>;
 }
 
 export type Account = RecordOf<AccountShape>;
@@ -98,6 +100,7 @@ export const accountDefaultValues: AccountShape = {
   // This comes from `ApiMutedAccountJSON`, but we should eventually
   // store that in a different object.
   mute_expires_at: null,
+  badges: List<Badge>(),
 };
 
 const AccountFactory = ImmutableRecord<AccountShape>(accountDefaultValues);
@@ -144,11 +147,17 @@ export function createAccountFromServerJSON(serverJSON: ApiAccountJSON) {
     ),
     emojis: List(serverJSON.emojis.map((emoji) => CustomEmojiFactory(emoji))),
     roles: List(serverJSON.roles?.map((role) => AccountRoleFactory(role))),
+    badges: List(accountJSON.badges || []),
     display_name_html: emojify(
       escapeTextContentForBrowser(displayName),
       emojiMap,
     ),
     note_emojified: emojify(accountJSON.note, emojiMap),
     note_plain: unescapeHTML(accountJSON.note),
+    url:
+      accountJSON.url.startsWith('http://') ||
+      accountJSON.url.startsWith('https://')
+        ? accountJSON.url
+        : accountJSON.uri,
   });
 }

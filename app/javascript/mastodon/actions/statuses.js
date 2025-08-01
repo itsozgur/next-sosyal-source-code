@@ -18,6 +18,13 @@ export const CONTEXT_FETCH_REQUEST = 'CONTEXT_FETCH_REQUEST';
 export const CONTEXT_FETCH_SUCCESS = 'CONTEXT_FETCH_SUCCESS';
 export const CONTEXT_FETCH_FAIL    = 'CONTEXT_FETCH_FAIL';
 
+export const COMMENTS_FETCH_REQUEST = 'COMMENTS_FETCH_REQUEST';
+export const COMMENTS_FETCH_SUCCESS = 'COMMENTS_FETCH_SUCCESS';
+export const COMMENTS_FETCH_FAIL    = 'COMMENTS_FETCH_FAIL';
+export const COMMENTS_EXPAND_REQUEST = 'COMMENTS_EXPAND_REQUEST';
+export const COMMENTS_EXPAND_SUCCESS = 'COMMENTS_EXPAND_SUCCESS';
+export const COMMENTS_EXPAND_FAIL    = 'COMMENTS_EXPAND_FAIL';
+
 export const STATUS_MUTE_REQUEST = 'STATUS_MUTE_REQUEST';
 export const STATUS_MUTE_SUCCESS = 'STATUS_MUTE_SUCCESS';
 export const STATUS_MUTE_FAIL    = 'STATUS_MUTE_FAIL';
@@ -136,12 +143,19 @@ export function deleteStatus(id, withRedraft = false) {
       status = status.set('poll', getState().getIn(['polls', status.get('poll')]));
     }
 
+    // Backend already handles quote count decrement via after_destroy_commit callback
+    // No need for manual unquote API call to avoid double decrement
+
     dispatch(deleteStatusRequest(id));
 
     api().delete(`/api/v1/statuses/${id}`).then(response => {
       dispatch(deleteStatusSuccess(id));
       dispatch(deleteFromTimelines(id));
       dispatch(importFetchedAccount(response.data.account));
+
+      if(window.location.pathname.includes(`/${id}`)){
+        browserHistory.push('/home');
+      }
 
       if (withRedraft) {
         dispatch(redraft(status, response.data.text));
@@ -216,6 +230,98 @@ export function fetchContextSuccess(id, ancestors, descendants) {
 export function fetchContextFail(id, error) {
   return {
     type: CONTEXT_FETCH_FAIL,
+    id,
+    error,
+    skipAlert: true,
+  };
+}
+
+export function fetchComments(id, params = {}) {
+  return (dispatch) => {
+    dispatch(fetchCommentsRequest(id));
+
+    const queryParams = new URLSearchParams();
+    if (params.limit) queryParams.set('limit', params.limit);
+    if (params.max_id) queryParams.set('max_id', params.max_id);
+    if (params.since_id) queryParams.set('since_id', params.since_id);
+
+    const url = `/api/v1/statuses/${id}/comments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+    api().get(url).then(response => {
+      dispatch(importFetchedStatuses(response.data.descendants));
+      dispatch(fetchCommentsSuccess(id, response.data.descendants, response.headers.link));
+    }).catch(error => {
+      console.error('fetchComments error:', error);
+      dispatch(fetchCommentsFail(id, error));
+    });
+  };
+}
+
+export function fetchCommentsRequest(id) {
+  return {
+    type: COMMENTS_FETCH_REQUEST,
+    id,
+  };
+}
+
+export function fetchCommentsSuccess(id, comments, links) {
+  return {
+    type: COMMENTS_FETCH_SUCCESS,
+    id,
+    comments,
+    links,
+  };
+}
+
+export function fetchCommentsFail(id, error) {
+  return {
+    type: COMMENTS_FETCH_FAIL,
+    id,
+    error,
+    skipAlert: true,
+  };
+}
+
+export function expandComments(id, params = {}) {
+  return (dispatch) => {
+    dispatch(expandCommentsRequest(id));
+
+    const queryParams = new URLSearchParams();
+    if (params.limit) queryParams.set('limit', params.limit);
+    if (params.max_id) queryParams.set('max_id', params.max_id);
+    if (params.since_id) queryParams.set('since_id', params.since_id);
+
+    const url = `/api/v1/statuses/${id}/comments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+    api().get(url).then(response => {
+      dispatch(importFetchedStatuses(response.data.descendants));
+      dispatch(expandCommentsSuccess(id, response.data.descendants, response.headers.link));
+    }).catch(error => {
+      console.error('expandComments error:', error);
+      dispatch(expandCommentsFail(id, error));
+    });
+  };
+}
+
+export function expandCommentsRequest(id) {
+  return {
+    type: COMMENTS_EXPAND_REQUEST,
+    id,
+  };
+}
+
+export function expandCommentsSuccess(id, comments, links) {
+  return {
+    type: COMMENTS_EXPAND_SUCCESS,
+    id,
+    comments,
+    links,
+  };
+}
+
+export function expandCommentsFail(id, error) {
+  return {
+    type: COMMENTS_EXPAND_FAIL,
     id,
     error,
     skipAlert: true,

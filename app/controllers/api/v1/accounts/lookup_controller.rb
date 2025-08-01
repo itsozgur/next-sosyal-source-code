@@ -16,4 +16,12 @@ class Api::V1::Accounts::LookupController < Api::BaseController
   rescue Addressable::URI::InvalidURIError
     raise(ActiveRecord::RecordNotFound)
   end
+
+  def disallow_unauthenticated_api_access?
+    base = ENV['DISALLOW_UNAUTHENTICATED_API_ACCESS'] == 'true' || Rails.configuration.x.limited_federation_mode
+    if base && ENV['PUBLIC_TIMELINE_ACCESS'] == 'true'
+      return false if action_name == 'show'
+    end
+    base
+  end
 end

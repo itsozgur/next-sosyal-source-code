@@ -2,7 +2,7 @@
 
 module Paperclip
   class LazyThumbnail < Paperclip::Processor
-    GIF_MAX_FPS = 60
+    GIF_MAX_FPS = 30
     GIF_MAX_FRAMES = 3000
     GIF_PALETTE_COLORS = 32
 
@@ -123,7 +123,14 @@ module Paperclip
     end
 
     def needs_convert?
-      needs_different_geometry? || needs_different_format? || needs_metadata_stripping?
+      strip_animations? || needs_different_geometry? || needs_different_format? || needs_metadata_stripping?
+    end
+
+    def strip_animations?
+      # Detecting whether the source image is animated across all our supported
+      # input file formats is not trivial, and converting unconditionally is just
+      # as simple for now
+      options[:style] == :static
     end
 
     def needs_different_geometry?

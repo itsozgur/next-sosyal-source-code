@@ -12,6 +12,13 @@ export interface ApiAccountRoleJSON {
   name: string;
 }
 
+export interface Badge {
+  name: string;
+  icon: string;
+  order: number;
+  rank?: number;
+}
+
 // See app/serializers/rest/account_serializer.rb
 export interface BaseApiAccountJSON {
   acct: string;
@@ -44,6 +51,7 @@ export interface BaseApiAccountJSON {
   limited?: boolean;
   memorial?: boolean;
   hide_collections: boolean;
+  badges: Badge[];
 }
 
 // See app/serializers/rest/muted_account_serializer.rb

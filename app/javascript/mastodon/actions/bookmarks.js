@@ -18,7 +18,7 @@ export function fetchBookmarkedStatuses() {
 
     dispatch(fetchBookmarkedStatusesRequest());
 
-    api().get('/api/v1/bookmarks').then(response => {
+    api().get('/api/v1/bookmarks', { params: { limit: 10 } }).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(fetchBookmarkedStatusesSuccess(response.data, next ? next.uri : null));
@@ -59,7 +59,13 @@ export function expandBookmarkedStatuses() {
 
     dispatch(expandBookmarkedStatusesRequest());
 
-    api().get(url).then(response => {
+    // URL'de limit parametresi yoksa ekle
+    const urlObj = new URL(url, window.location.origin);
+    if (!urlObj.searchParams.has('limit')) {
+      urlObj.searchParams.set('limit', '10');
+    }
+
+    api().get(urlObj.pathname + urlObj.search).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(expandBookmarkedStatusesSuccess(response.data, next ? next.uri : null));

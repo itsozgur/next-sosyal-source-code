@@ -83,11 +83,11 @@ class Api::V1::AccountsController < Api::BaseController
   private
 
   def set_account
-    @account = Account.find(params[:id])
+    @account = Account.includes(account_badges: :badge).find(params[:id])
   end
 
   def set_accounts
-    @accounts = Account.where(id: account_ids).without_unapproved
+    @accounts = Account.includes(account_badges: :badge).where(id: account_ids).without_unapproved
   end
 
   def check_account_approval
@@ -128,5 +128,13 @@ class Api::V1::AccountsController < Api::BaseController
 
   def check_enabled_registrations
     forbidden unless allowed_registration?(request.remote_ip, invite)
+  end
+
+  def disallow_unauthenticated_api_access?
+    base = ENV['DISALLOW_UNAUTHENTICATED_API_ACCESS'] == 'true' || Rails.configuration.x.limited_federation_mode
+    if base && ENV['PUBLIC_TIMELINE_ACCESS'] == 'true'
+      return false if action_name == 'show'
+    end
+    base
   end
 end

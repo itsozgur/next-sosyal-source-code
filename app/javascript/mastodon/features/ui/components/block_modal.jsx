@@ -46,7 +46,7 @@ export const BlockModal = ({ accountId, acct }) => {
 
           <div>
             <h1><FormattedMessage id='block_modal.title' defaultMessage='Block user?' /></h1>
-            <div>@{acct}</div>
+            <div>@{acct.split('@')[0]}</div>
           </div>
         </div>
 

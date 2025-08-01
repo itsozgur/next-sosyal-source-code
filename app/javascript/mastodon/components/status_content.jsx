@@ -15,7 +15,22 @@ import PollContainer from 'mastodon/containers/poll_container';
 import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
 import { autoPlayGif, languages as preloadedLanguages } from 'mastodon/initial_state';
 
-const MAX_HEIGHT = 706; // 22px * 32 (+ 2px padding at the top)
+
+const isYouTubeLiveStream = url => {
+  try {
+    const urlLower = url.toLowerCase();
+    
+    if (urlLower.includes('youtube.com/live/')) {
+      return true;
+    }
+    
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
+
+const MAX_HEIGHT = 706; 
 
 /**
  *
@@ -31,6 +46,7 @@ class TranslateButton extends PureComponent {
   static propTypes = {
     translation: ImmutablePropTypes.map,
     onClick: PropTypes.func,
+    quoteUrls: PropTypes.arrayOf(PropTypes.string),
   };
 
   render () {
@@ -103,6 +119,11 @@ class StatusContent extends PureComponent {
         continue;
       }
 
+      if ((link.href.includes('youtube.com') || link.href.includes('youtu.be')) && isYouTubeLiveStream(link.href)) {
+        link.style.display = 'none';
+        continue;
+      }
+
       link.classList.add('status-link');
 
       mention = this.props.status.get('mentions').find(item => link.href === item.get('url'));
@@ -162,11 +183,41 @@ class StatusContent extends PureComponent {
 
   componentDidMount () {
     this._updateStatusLinks();
+    this._hideQuoteUrls();
   }
 
   componentDidUpdate () {
     this._updateStatusLinks();
+    this._hideQuoteUrls();
   }
+
+  _hideQuoteUrls = () => {
+    const node = this.node;
+    if (!node) return;
+
+
+    const links = node.querySelectorAll('a');
+    
+    links.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && !link.classList.contains('mention')) {
+
+        const isQuoteUrl = 
+          href.includes('/@') && 
+          /\/\d+$/.test(href) && 
+          (href.startsWith('http://') || href.startsWith('https://'));
+          
+        if (isQuoteUrl) {
+          link.style.display = 'none';
+          
+          const parentP = link.closest('p');
+          if (parentP && parentP.textContent.trim() === link.textContent.trim()) {
+            parentP.style.display = 'none';
+          }
+        }
+      }
+    });
+  };
 
   onMentionClick = (mention, e) => {
     if (this.props.history && e.button === 0 && !(e.ctrlKey || e.metaKey)) {

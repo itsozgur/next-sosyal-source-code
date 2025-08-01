@@ -38,7 +38,7 @@ export const EditIndicator = () => {
     <div className='edit-indicator'>
       <div className='edit-indicator__header'>
         <div className='edit-indicator__display-name'>
-          <Link to={`/@${account.get('acct')}`}>@{account.get('acct')}</Link>
+          <Link to={`/@${account.get('acct')}`}> @{account.get('acct').split('@')[0]}</Link>
           ·
           <Link to={`/@${account.get('acct')}/${status.get('id')}`}><RelativeTimestamp timestamp={status.get('created_at')} /></Link>
         </div>

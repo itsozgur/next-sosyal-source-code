@@ -22,7 +22,7 @@ class UserSettings
     setting :advanced_layout, default: false
     setting :trends, default: true
     setting :use_blurhash, default: true
-    setting :use_pending_items, default: false
+    setting :use_pending_items, default: true
     setting :use_system_font, default: false
     setting :disable_swiping, default: false
     setting :disable_hover_cards, default: false

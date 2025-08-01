@@ -12,7 +12,7 @@ import { HotKeys } from 'react-hotkeys';
 
 import EditIcon from '@/material-icons/400-24px/edit.svg?react';
 import FlagIcon from '@/material-icons/400-24px/flag-fill.svg?react';
-import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home.svg?react';
 import InsertChartIcon from '@/material-icons/400-24px/insert_chart.svg?react';
 import PersonIcon from '@/material-icons/400-24px/person-fill.svg?react';
 import PersonAddIcon from '@/material-icons/400-24px/person_add-fill.svg?react';

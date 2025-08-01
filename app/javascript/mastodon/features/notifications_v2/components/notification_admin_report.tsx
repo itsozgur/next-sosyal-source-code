@@ -100,7 +100,7 @@ export const NotificationAdminReport: React.FC<{
         'notification-group notification-group--link notification-group--admin-report focusable',
         { 'notification-group--unread': unread },
       )}
-    >
+    data-testid="notification_admin_report-show-a">
       <div className='notification-group__icon'>
         <Icon id='flag' icon={FlagIcon} />
       </div>

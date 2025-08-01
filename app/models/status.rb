@@ -27,6 +27,7 @@
 #  edited_at                    :datetime
 #  trendable                    :boolean
 #  ordered_media_attachment_ids :bigint(8)        is an Array
+#  quoted_status_id             :bigint(8)
 #
 
 class Status < ApplicationRecord
@@ -60,6 +61,8 @@ class Status < ApplicationRecord
   belongs_to :in_reply_to_account, class_name: 'Account', optional: true
   belongs_to :conversation, optional: true
   belongs_to :preloadable_poll, class_name: 'Poll', foreign_key: 'poll_id', optional: true, inverse_of: false
+  belongs_to :quoted_status, class_name: 'Status', optional: true
+  has_many :quotes, class_name: 'Status', foreign_key: :quoted_status_id
 
   with_options class_name: 'Status', optional: true do
     belongs_to :thread, foreign_key: 'in_reply_to_id', inverse_of: :replies
@@ -83,6 +86,7 @@ class Status < ApplicationRecord
   has_many :local_favorited, -> { merge(Account.local) }, through: :favourites, source: :account
   has_many :local_reblogged, -> { merge(Account.local) }, through: :reblogs, source: :account
   has_many :local_bookmarked, -> { merge(Account.local) }, through: :bookmarks, source: :account
+  has_many :status_views, dependent: :delete_all
 
   has_and_belongs_to_many :tags # rubocop:disable Rails/HasAndBelongsToMany
 
@@ -133,6 +137,7 @@ class Status < ApplicationRecord
 
   after_create_commit  :increment_counter_caches
   after_destroy_commit :decrement_counter_caches
+  after_destroy_commit :decrement_quotes_count_for_quoted_status
 
   after_create_commit :store_uri, if: :local?
   after_create_commit :update_statistics, if: :local?
@@ -303,6 +308,18 @@ class Status < ApplicationRecord
     status_stat&.favourites_count || 0
   end
 
+  def views_count
+    status_stat&.views_count || 0
+  end
+
+  def quotes_count
+    status_stat&.quotes_count || 0
+  end
+
+  def interactions_count
+    status_stat&.interactions_count || 0
+  end
+
   def increment_count!(key)
     update_status_stat!(key => public_send(key) + 1)
   end
@@ -393,7 +410,21 @@ class Status < ApplicationRecord
   def update_status_stat!(attrs)
     return if marked_for_destruction? || destroyed?
 
-    status_stat.update(attrs)
+    # quoted_status_id için özel quotes_count artırma/azaltma
+    if attrs.key?(:quotes_count) && quoted_status_id.present?
+      quoted = Status.find_by(id: quoted_status_id)
+      if quoted
+        value = attrs[:quotes_count]
+        if value == :increment
+          quoted.status_stat.increment!(:quotes_count)
+        elsif value == :decrement && quoted.status_stat.quotes_count > 0
+          quoted.status_stat.decrement!(:quotes_count)
+        end
+      end
+      attrs = attrs.except(:quotes_count)
+    end
+
+    status_stat.update(attrs) unless attrs.empty?
   end
 
   def store_uri
@@ -463,6 +494,13 @@ class Status < ApplicationRecord
     account&.decrement_count!(:statuses_count)
     reblog&.decrement_count!(:reblogs_count) if reblog?
     thread&.decrement_count!(:replies_count) if in_reply_to_id.present? && distributable?
+  end
+
+  def decrement_quotes_count_for_quoted_status
+    return unless quoted_status_id.present?
+    status_stat = StatusStat.find_by(status_id: quoted_status_id)
+    return unless status_stat
+    status_stat.decrement!(:quotes_count) if status_stat.quotes_count > 0
   end
 
   def trigger_create_webhooks

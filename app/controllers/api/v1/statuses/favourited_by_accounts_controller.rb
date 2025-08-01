@@ -5,6 +5,7 @@ class Api::V1::Statuses::FavouritedByAccountsController < Api::V1::Statuses::Bas
   after_action :insert_pagination_headers
 
   def index
+    return head :forbidden unless @status.account_id == current_account.id
     cache_if_unauthenticated!
     @accounts = load_accounts
     render json: @accounts, each_serializer: REST::AccountSerializer
@@ -21,7 +22,7 @@ class Api::V1::Statuses::FavouritedByAccountsController < Api::V1::Statuses::Bas
   def default_accounts
     Account
       .without_suspended
-      .includes(:favourites, :account_stat, :user)
+      .includes(:favourites, :account_stat, :user, account_badges: :badge)
       .references(:favourites)
       .where(favourites: { status_id: @status.id })
   end
@@ -39,18 +40,18 @@ class Api::V1::Statuses::FavouritedByAccountsController < Api::V1::Statuses::Bas
   end
 
   def prev_path
-    api_v1_status_favourited_by_index_url pagination_params(since_id: pagination_since_id) unless @accounts.empty?
+    api_v1_status_favourited_by_index_url pagination_params(since_id: pagination_since_id) unless @accounts&.empty?
   end
 
   def pagination_max_id
-    @accounts.last.favourites.last.id
+    @accounts&.last&.favourites&.last&.id
   end
 
   def pagination_since_id
-    @accounts.first.favourites.first.id
+    @accounts&.first&.favourites&.first&.id
   end
 
   def records_continue?
-    @accounts.size == limit_param(DEFAULT_ACCOUNTS_LIMIT)
+    @accounts&.size == limit_param(DEFAULT_ACCOUNTS_LIMIT)
   end
 end

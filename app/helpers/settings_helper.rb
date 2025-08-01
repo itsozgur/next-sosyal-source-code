@@ -2,7 +2,8 @@
 
 module SettingsHelper
   def filterable_languages
-    LanguagesHelper.sorted_locale_keys(LanguagesHelper::SUPPORTED_LOCALES.keys)
+    # LanguagesHelper.sorted_locale_keys(LanguagesHelper::SUPPORTED_LOCALES.keys)
+    LanguagesHelper.sorted_locale_keys([:tr, :en])
   end
 
   def ui_languages

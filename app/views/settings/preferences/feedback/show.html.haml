@@ -1,0 +1,58 @@
+- content_for :head_tags do
+  %meta{name: "feedback-user-username", content: "#{current_user.account.username}"}
+  %meta{name: "feedback-user-tenant", content: "#{ENV['OIDC_CLIENT_ID']}"}
+  %meta{name: "feedback-user-dynamic-url", content: "#{ENV['AUTH_URL']}"}
+  =javascript_pack_tag 'feedback',defer: true,crossorigin: 'anonymous'
+
+
+- content_for :page_title do
+  = t('settings.feedback')
+
+
+
+= simple_form_for current_user, url: settings_feedback_path, html: { method: :put, class: 'feedback-form' } do |f|
+  %section.glitch-settings-section
+    %h4= t('settings.feedback_title')
+    %p.hint= t('settings.feedback_description')
+
+    .feedback-form__rating-container
+      %label.feedback-form__field-header= t('settings.feedback_rating')
+      .feedback-form__emoji-labels
+        - rating_options = [['😣', t('settings.feedback_rating_very_dissatisfied')], ['😔', t('settings.feedback_rating_dissatisfied')], ['😐', t('settings.feedback_rating_neutral')], ['🙂', t('settings.feedback_rating_satisfied')], ['😊', t('settings.feedback_rating_very_satisfied')]]
+        - rating_options.each_with_index do |(emoji, label), index|
+          .feedback-form__emoji-label{data: {value: index + 1}}
+            .feedback-form__emoji= emoji
+            .feedback-form__rating-label= label
+
+      .feedback-form__slider-container
+        .feedback-form__slider-track
+          .feedback-form__slider-progress
+        %input.feedback-form__slider{type: 'range', min: 1, max: 5, step: 1, value: 0}
+      = f.hidden_field :feedback_rating, value: nil, required: true
+
+    .feedback-form__fields
+      .feedback-form__input
+        %label.feedback-form__field-header{for: "feedback_subject"}= t('settings.feedback_subject_field', default: 'Konu')
+        = text_field_tag :feedback_subject, nil, placeholder: t('settings.feedback_subject_placeholder', default: 'Konu giriniz'), class: 'feedback-form__input', required: true
+
+
+      .feedback-form__field
+        %label.feedback-form__field-header{for: "feedback_comment"}= t('settings.feedback_description_field')
+        = text_area_tag :feedback_comment, nil, rows: 5, placeholder: t('settings.feedback_placeholder'), class: 'feedback-form__textarea', style: "background-color: #111214; color: #d9d9d9; border: 1px solid #333;", required: true
+
+
+
+      .feedback-form__file-section
+        %label.feedback-form__file-label= t('settings.feedback_file_label')
+        .feedback-form__file-input-wrapper
+          .feedback-form__file-input-container
+            .feedback-form__file-name-placeholder= t('settings.feedback_file_placeholder')
+            .feedback-form__file-button
+              .feedback-form__file-button-icon
+              .feedback-form__file-button-text= t('settings.feedback_file_button')
+          = file_field_tag :feedback_file, class: 'feedback-form__file-input', accept: '.jpg,.jpeg,.png,.webp,.gif,.svg,.bmp,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm,.mpeg'
+
+
+
+  .feedback-form__button-container
+    = f.button :button, t('generic.feedback'), type: :submit,class: 'feedback-form__submit-button'

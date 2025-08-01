@@ -18,7 +18,7 @@ export function fetchFavouritedStatuses() {
 
     dispatch(fetchFavouritedStatusesRequest());
 
-    api().get('/api/v1/favourites').then(response => {
+    api().get('/api/v1/favourites', { params: { limit: 10 } }).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(fetchFavouritedStatusesSuccess(response.data, next ? next.uri : null));
@@ -62,7 +62,13 @@ export function expandFavouritedStatuses() {
 
     dispatch(expandFavouritedStatusesRequest());
 
-    api().get(url).then(response => {
+    // URL'de limit parametresi yoksa ekle
+    const urlObj = new URL(url, window.location.origin);
+    if (!urlObj.searchParams.has('limit')) {
+      urlObj.searchParams.set('limit', '10');
+    }
+
+    api().get(urlObj.pathname + urlObj.search).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(expandFavouritedStatusesSuccess(response.data, next ? next.uri : null));

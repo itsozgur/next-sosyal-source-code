@@ -8,7 +8,10 @@ import {
   selectComposeSuggestion,
   changeComposeSpoilerText,
   insertEmojiCompose,
-  uploadCompose,
+  scheduledPost,
+  getScheduledPost,
+  changeScheduleDateTime,
+  showScheduleInput,
 } from '../../../actions/compose';
 import ComposeForm from '../components/compose_form';
 
@@ -22,18 +25,21 @@ const mapStateToProps = state => ({
   caretPosition: state.getIn(['compose', 'caretPosition']),
   preselectDate: state.getIn(['compose', 'preselectDate']),
   isSubmitting: state.getIn(['compose', 'is_submitting']),
+  isScheduleSubmitting: state.getIn(['compose', 'is_schedule_submitting']),
   isEditing: state.getIn(['compose', 'id']) !== null,
   isChangingUpload: state.getIn(['compose', 'is_changing_upload']),
   isUploading: state.getIn(['compose', 'is_uploading']),
   anyMedia: state.getIn(['compose', 'media_attachments']).size > 0,
   isInReply: state.getIn(['compose', 'in_reply_to']) !== null,
+  quoteStatus: state.getIn(['compose', 'quote_status']),
   lang: state.getIn(['compose', 'language']),
-  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 500),
+  maxChars: state.getIn(['server', 'server', 'configuration', 'statuses', 'max_characters'], 10000),
+  scheduledDateTime: state.getIn(['compose', 'scheduledDateTime']),
+  showScheduleInput: state.getIn(['compose', 'showScheduleInput']),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-
-  onChange (text) {
+const mapDispatchToProps = dispatch => ({
+  onChange(text) {
     dispatch(changeCompose(text));
   },
 
@@ -53,16 +59,29 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(selectComposeSuggestion(position, token, suggestion, path));
   },
 
-  onChangeSpoilerText (checked) {
-    dispatch(changeComposeSpoilerText(checked));
-  },
-
-  onPaste (files) {
-    dispatch(uploadCompose(files));
+  onChangeSpoilerText(text) {
+    dispatch(changeComposeSpoilerText(text));
   },
 
   onPickEmoji (position, data, needsSpace) {
     dispatch(insertEmojiCompose(position, data, needsSpace));
+  },
+  onSchedule(scheduledAt) {
+    return dispatch(scheduledPost(scheduledAt)).catch(() => {
+      // Error is already handled in the action
+    });
+  },
+
+  onGetScheduledPosts() {
+    dispatch(getScheduledPost());
+  },
+
+  onScheduleDateTimeChange(value) {
+    dispatch(changeScheduleDateTime(value));
+  },
+
+  onScheduleInputShow(value) {
+    dispatch(showScheduleInput(value));
   },
 
 });

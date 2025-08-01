@@ -8,7 +8,7 @@ import { isEqual } from 'lodash';
 import { useDebouncedCallback } from 'use-debounce';
 
 import DoneAllIcon from '@/material-icons/400-24px/done_all.svg?react';
-import NotificationsIcon from '@/material-icons/400-24px/notifications-fill.svg?react';
+import NotificationsIcon from '@/material-icons/400-24px/notifications.svg?react';
 import {
   fetchNotificationsGap,
   updateScrollPosition,

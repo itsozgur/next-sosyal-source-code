@@ -20,8 +20,8 @@ class SiteUpload < ApplicationRecord
   include Attachmentable
 
   FAVICON_SIZES = [16, 32, 48].freeze
-  APPLE_ICON_SIZES   = [57, 60, 72, 76, 114, 120, 144, 152, 167, 180, 1024].freeze
-  ANDROID_ICON_SIZES = [36, 48, 72, 96, 144, 192, 256, 384, 512].freeze
+  APPLE_ICON_SIZES   = [57, 60, 72, 76, 114, 120, 144, 152, 167].freeze
+  ANDROID_ICON_SIZES = [36, 48, 72, 96, 144, 192, 256, 384].freeze
 
   APP_ICON_SIZES = (APPLE_ICON_SIZES + ANDROID_ICON_SIZES).uniq.freeze
 

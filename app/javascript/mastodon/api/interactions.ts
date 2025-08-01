@@ -8,3 +8,9 @@ export const apiReblog = (statusId: string, visibility: StatusVisibility) =>
 
 export const apiUnreblog = (statusId: string) =>
   apiRequestPost<Status>(`v1/statuses/${statusId}/unreblog`);
+
+export const apiQuote = (statusId: string) =>
+  apiRequestPost<Status>(`v1/statuses/${statusId}/quote`);
+
+export const apiUnquote = (statusId: string) =>
+  apiRequestPost<Status>(`v1/statuses/${statusId}/unquote`);

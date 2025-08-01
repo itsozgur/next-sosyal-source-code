@@ -2,6 +2,7 @@
 
 require 'active_support/core_ext/integer/time'
 
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -37,10 +38,7 @@ Rails.application.configure do
 
   config.action_controller.forgery_protection_origin_check = ENV['DISABLE_FORGERY_REQUEST_PROTECTION'].nil?
 
-  ActiveSupport::Logger.new($stdout).tap do |logger|
-    logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)
-  end
+  ActiveRecord::Base.logger = nil
 
   # Generate random VAPID keys
   Webpush.generate_key.tap do |vapid_key|

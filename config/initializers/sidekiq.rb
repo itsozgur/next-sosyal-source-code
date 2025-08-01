@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require_relative '../../lib/mastodon/sidekiq_middleware'
+require_relative '../../lib/custom_logger'
 
 Sidekiq.configure_server do |config|
   config.redis = REDIS_CONFIGURATION.sidekiq
+  logger = CustomLogger.build
+  config.logger = logger
 
   # This is used in Kubernetes setups, to signal that the Sidekiq process has started and will begin processing jobs
   # This comes from https://github.com/sidekiq/sidekiq/wiki/Kubernetes#sidekiq
@@ -51,6 +54,7 @@ Sidekiq.configure_server do |config|
 end
 
 Sidekiq.configure_client do |config|
+  config.logger = CustomLogger.build
   config.redis = REDIS_CONFIGURATION.sidekiq
 
   config.client_middleware do |chain|

@@ -7,6 +7,68 @@
   %link{ rel: 'alternate', type: 'application/json+oembed', href: api_oembed_url(url: short_account_status_url(@account, @status), format: 'json') }/
   %link{ rel: 'alternate', type: 'application/activity+json', href: ActivityPub::TagManager.instance.uri_for(@status) }/
 
+  - description = status_description(@status)
+  - title = "#{display_name(@account)} - #{site_title}"
+
+  -# Twitter Card meta tags - these must come first for mobile compatibility
+  %meta{ name: 'twitter:card', content: 'summary' }/
+  %meta{ name: 'twitter:site', content: title }/
+  %meta{ name: 'twitter:creator', content: "@#{@account.acct}" }/
+  %meta{ name: 'twitter:title', content: description }/
+  %meta{ name: 'twitter:description', content: title }/
+
+  -# Duplicate with property attribute for better mobile support
+  %meta{ property: 'twitter:card', content: 'summary' }/
+  %meta{ property: 'twitter:site', content: title }/
+  %meta{ property: 'twitter:creator', content: "@#{@account.acct}" }/
+  %meta{ property: 'twitter:title', content: description }/
+  %meta{ property: 'twitter:description', content: title }/
+
+  -# Mobile app specific meta tags
+  %meta{ name: 'twitter:app:name:iphone', content: site_title }/
+  %meta{ name: 'twitter:app:name:googleplay', content: site_title }/
+  %meta{ name: 'twitter:app:url:iphone', content: short_account_status_url(@account, @status) }/
+  %meta{ name: 'twitter:app:url:googleplay', content: short_account_status_url(@account, @status) }/
+
+  %meta{ name: 'twitter:widgets:new-embed-design', content: 'on' }/
+  %meta{ name: 'twitter:dnt', content: 'on' }/
+
+  - if @status.with_media?
+    - first_media = @status.ordered_media_attachments.first
+    - if first_media&.image?
+      %meta{ name: 'twitter:image', content: full_asset_url(first_media.file.url(:original)) }/
+      %meta{ property: 'twitter:image', content: full_asset_url(first_media.file.url(:original)) }/
+      - if first_media&.file&.meta&.dig('original', 'width')
+        %meta{ name: 'twitter:image:width', content: first_media.file.meta.dig('original', 'width') }/
+        %meta{ property: 'twitter:image:width', content: first_media.file.meta.dig('original', 'width') }/
+      - if first_media&.file&.meta&.dig('original', 'height')
+        %meta{ name: 'twitter:image:height', content: first_media.file.meta.dig('original', 'height') }/
+        %meta{ property: 'twitter:image:height', content: first_media.file.meta.dig('original', 'height') }/
+      - if first_media.description.present?
+        %meta{ name: 'twitter:image:alt', content: first_media.description }/
+        %meta{ property: 'twitter:image:alt', content: first_media.description }/
+  - else
+    - site_thumbnail = instance_presenter.thumbnail
+    - if site_thumbnail
+      %meta{ name: 'twitter:image', content: full_asset_url(site_thumbnail.file.url(:'@1x')) }/
+      %meta{ property: 'twitter:image', content: full_asset_url(site_thumbnail.file.url(:'@1x')) }/
+      %meta{ name: 'twitter:image:width', content: site_thumbnail.meta['width'] || '1200' }/
+      %meta{ property: 'twitter:image:width', content: site_thumbnail.meta['width'] || '1200' }/
+      %meta{ name: 'twitter:image:height', content: site_thumbnail.meta['height'] || '630' }/
+      %meta{ property: 'twitter:image:height', content: site_thumbnail.meta['height'] || '630' }/
+      %meta{ name: 'twitter:image:alt', content: "#{site_title} - Social Media Preview" }/
+      %meta{ property: 'twitter:image:alt', content: "#{site_title} - Social Media Preview" }/
+    - else
+      %meta{ name: 'twitter:image', content: full_asset_url(@account.avatar.url(:original)) }/
+      %meta{ property: 'twitter:image', content: full_asset_url(@account.avatar.url(:original)) }/
+      %meta{ name: 'twitter:image:width', content: '400' }/
+      %meta{ property: 'twitter:image:width', content: '400' }/
+      %meta{ name: 'twitter:image:height', content: '400' }/
+      %meta{ property: 'twitter:image:height', content: '400' }/
+      %meta{ name: 'twitter:image:alt', content: "#{display_name(@account)}'s avatar" }/
+      %meta{ property: 'twitter:image:alt', content: "#{display_name(@account)}'s avatar" }/
+
+  -# OpenGraph meta tags
   = opengraph 'og:site_name', site_title
   = opengraph 'og:type', 'article'
   = opengraph 'og:title', "#{display_name(@account)} (#{acct(@account)})"

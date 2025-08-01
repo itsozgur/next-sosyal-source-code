@@ -9,7 +9,7 @@ import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 
 import CampaignIcon from '@/material-icons/400-24px/campaign.svg?react';
-import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home.svg?react';
 import { fetchAnnouncements, toggleShowAnnouncements } from 'mastodon/actions/announcements';
 import { IconWithBadge } from 'mastodon/components/icon_with_badge';
 import { NotSignedInIndicator } from 'mastodon/components/not_signed_in_indicator';
@@ -78,11 +78,16 @@ class HomeTimeline extends PureComponent {
   };
 
   handleLoadMore = maxId => {
-    this.props.dispatch(expandHomeTimeline({ maxId }));
+    this.props.dispatch(expandHomeTimeline({ maxId, limit: 10 }));
   };
 
   componentDidMount () {
-    setTimeout(() => this.props.dispatch(fetchAnnouncements()), 700);
+    const { dispatch } = this.props;
+    
+    // İlk yükleme için home timeline'ı limit 10 ile yükle
+    dispatch(expandHomeTimeline({ limit: 10 }));
+    
+    setTimeout(() => dispatch(fetchAnnouncements()), 700);
     this._checkIfReloadNeeded(false, this.props.isPartial);
   }
 
@@ -101,7 +106,7 @@ class HomeTimeline extends PureComponent {
       return;
     } else if (!wasPartial && isPartial) {
       this.polling = setInterval(() => {
-        dispatch(expandHomeTimeline());
+        dispatch(expandHomeTimeline({ limit: 10 }));
       }, 3000);
     } else if (wasPartial && !isPartial) {
       this._stopPolling();

@@ -8,7 +8,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   attributes :id, :created_at, :in_reply_to_id, :in_reply_to_account_id,
              :sensitive, :spoiler_text, :visibility, :language,
              :uri, :url, :replies_count, :reblogs_count,
-             :favourites_count, :edited_at
+             :favourites_count, :quotes_count, :views_count, :interactions_count, :edited_at
 
   attribute :favourited, if: :current_user?
   attribute :reblogged, if: :current_user?
@@ -23,6 +23,7 @@ class REST::StatusSerializer < ActiveModel::Serializer
   belongs_to :reblog, serializer: REST::StatusSerializer
   belongs_to :application, if: :show_application?
   belongs_to :account, serializer: REST::AccountSerializer
+  attribute :quoted_status
 
   has_many :ordered_media_attachments, key: :media_attachments, serializer: REST::MediaAttachmentSerializer
   has_many :ordered_mentions, key: :mentions
@@ -91,6 +92,10 @@ class REST::StatusSerializer < ActiveModel::Serializer
     relationships&.attributes_map&.dig(object.id, :favourites_count) || object.favourites_count
   end
 
+  def quotes_count
+    relationships&.attributes_map&.dig(object.id, :quotes_count) || object.quotes_count
+  end
+
   def favourited
     if relationships
       relationships.favourites_map[object.id] || false
@@ -152,6 +157,15 @@ class REST::StatusSerializer < ActiveModel::Serializer
 
   def ordered_mentions
     object.active_mentions.to_a.sort_by(&:id)
+  end
+
+  def quoted_status
+    return nil unless object.quoted_status_id
+    status = Rails.cache.fetch("status:#{object.quoted_status_id}", expires_in: 10.minutes) do
+      object.quoted_status
+    end
+    return nil unless status
+    REST::StatusSerializer.new(status, instance_options).as_json
   end
 
   private

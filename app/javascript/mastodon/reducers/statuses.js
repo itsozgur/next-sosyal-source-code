@@ -2,6 +2,7 @@ import { Map as ImmutableMap, fromJS } from 'immutable';
 
 import { timelineDelete } from 'mastodon/actions/timelines_typed';
 
+import { STATUS_UPDATE } from '../actions/compose';
 import { STATUS_IMPORT, STATUSES_IMPORT } from '../actions/importer';
 import { normalizeStatusTranslation } from '../actions/importer/normalizer';
 import {
@@ -77,6 +78,8 @@ export default function statuses(state = initialState, action) {
     return importStatus(state, action.status);
   case STATUSES_IMPORT:
     return importStatuses(state, action.statuses);
+  case STATUS_UPDATE:
+    return importStatus(state, action.status);
   case FAVOURITE_REQUEST:
     return state.setIn([action.status.get('id'), 'favourited'], true);
   case FAVOURITE_FAIL:

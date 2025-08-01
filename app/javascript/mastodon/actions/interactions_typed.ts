@@ -1,4 +1,9 @@
-import { apiReblog, apiUnreblog } from 'mastodon/api/interactions';
+import {
+  apiReblog,
+  apiUnreblog,
+  apiQuote,
+  apiUnquote,
+} from 'mastodon/api/interactions';
 import type { StatusVisibility } from 'mastodon/models/status';
 import { createDataLoadingThunk } from 'mastodon/store/typed_functions';
 
@@ -29,7 +34,26 @@ export const unreblog = createDataLoadingThunk(
   (data, { dispatch, discardLoadData }) => {
     dispatch(importFetchedStatus(data));
 
-    // The payload is not used in any actions
+    return discardLoadData;
+  },
+);
+
+export const quote = createDataLoadingThunk(
+  'status/quote',
+  ({ statusId }: { statusId: string }) => apiQuote(statusId),
+  (data, { dispatch, discardLoadData }) => {
+    dispatch(importFetchedStatus(data));
+
+    return discardLoadData;
+  },
+);
+
+export const unquote = createDataLoadingThunk(
+  'status/unquote',
+  ({ statusId }: { statusId: string }) => apiUnquote(statusId),
+  (data, { dispatch, discardLoadData }) => {
+    dispatch(importFetchedStatus(data));
+
     return discardLoadData;
   },
 );

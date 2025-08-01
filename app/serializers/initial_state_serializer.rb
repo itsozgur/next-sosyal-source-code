@@ -81,7 +81,18 @@ class InitialStateSerializer < ActiveModel::Serializer
   end
 
   def languages
-    LanguagesHelper::SUPPORTED_LOCALES.map { |(key, value)| [key, value[0], value[1]] }
+    # LanguagesHelper::SUPPORTED_LOCALES.map { |(key, value)| [key, value[0], value[1]] }
+    # Restrict available languages for new posts to Turkish and English
+    # But keep all supported locales for displaying existing posts
+    supported_languages = []
+
+    [:tr, :en].each do |code|
+      if (locale = LanguagesHelper::SUPPORTED_LOCALES[code])
+        supported_languages << [code, locale[0], locale[1]]
+      end
+    end
+
+    supported_languages
   end
 
   private

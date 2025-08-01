@@ -61,7 +61,7 @@ class AddedToFilter extends PureComponent {
     }
 
     const settings_link = (
-      <a href={`/filters/${filter.get('id')}/edit`}>
+      <a href={`/filters/${filter.get('id')}/edit`} data-testid="added_to_filter-show-a">
         <FormattedMessage
           id='filter_modal.added.settings_link'
           defaultMessage='settings page'

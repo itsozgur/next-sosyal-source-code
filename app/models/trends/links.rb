@@ -6,11 +6,11 @@ class Trends::Links < Trends::Base
   BATCH_SIZE = 100
 
   self.default_options = {
-    threshold: 5,
-    review_threshold: 3,
-    max_score_cooldown: 2.days.freeze,
-    max_score_halflife: 8.hours.freeze,
-    decay_threshold: 1,
+    threshold: 0,
+    review_threshold: 1,
+    max_score_cooldown: 1.weeks.freeze,
+    max_score_halflife: 5.days.freeze,
+    decay_threshold: 0.01,
   }
 
   class Query < Trends::Query

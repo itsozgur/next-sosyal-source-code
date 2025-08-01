@@ -4,6 +4,8 @@ class Trends::StatusFilter
   KEYS = %i(
     trending
     locale
+    user_query
+    content_query
   ).freeze
 
   IGNORED_PARAMS = %w(page).freeze
@@ -31,7 +33,7 @@ class Trends::StatusFilter
   def initial_scope
     Status.select(Status.arel_table[Arel.star])
           .joins(:trend)
-          .eager_load(:trend)
+          .eager_load(:trend, :account)
           .reorder(score: :desc)
   end
 
@@ -41,6 +43,10 @@ class Trends::StatusFilter
       trending_scope(value)
     when 'locale'
       StatusTrend.where(language: value)
+    when 'user_query'
+      Status.joins(:account).where('accounts.username ILIKE ?', "%#{value}%")
+    when 'content_query'
+      Status.where('statuses.text ILIKE ?', "%#{value}%")
     else
       raise Mastodon::InvalidParameterError, "Unknown filter: #{key}"
     end

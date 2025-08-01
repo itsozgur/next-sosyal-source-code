@@ -22,7 +22,7 @@ export const fetchTrendingHashtags = () => (dispatch) => {
   dispatch(fetchTrendingHashtagsRequest());
 
   api()
-    .get('/api/v1/trends/tags')
+    .get('/api/v1/trends')
     .then(({ data }) => dispatch(fetchTrendingHashtagsSuccess(data)))
     .catch(err => dispatch(fetchTrendingHashtagsFail(err)));
 };
@@ -82,7 +82,7 @@ export const fetchTrendingStatuses = () => (dispatch, getState) => {
 
   dispatch(fetchTrendingStatusesRequest());
 
-  api().get('/api/v1/trends/statuses').then(response => {
+  api().get('/api/v1/trends/statuses', { params: { limit: 10 } }).then(response => {
     const next = getLinks(response).refs.find(link => link.rel === 'next');
     dispatch(importFetchedStatuses(response.data));
     dispatch(fetchTrendingStatusesSuccess(response.data, next ? next.uri : null));
@@ -118,7 +118,13 @@ export const expandTrendingStatuses = () => (dispatch, getState) => {
 
   dispatch(expandTrendingStatusesRequest());
 
-  api().get(url).then(response => {
+  // URL'de limit parametresi yoksa ekle
+  const urlObj = new URL(url, window.location.origin);
+  if (!urlObj.searchParams.has('limit')) {
+    urlObj.searchParams.set('limit', '10');
+  }
+
+  api().get(urlObj.pathname + urlObj.search).then(response => {
     const next = getLinks(response).refs.find(link => link.rel === 'next');
     dispatch(importFetchedStatuses(response.data));
     dispatch(expandTrendingStatusesSuccess(response.data, next ? next.uri : null));

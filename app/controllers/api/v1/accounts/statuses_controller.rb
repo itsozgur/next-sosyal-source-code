@@ -31,6 +31,14 @@ class Api::V1::Accounts::StatusesController < Api::BaseController
     )
   end
 
+  def disallow_unauthenticated_api_access?
+    base = ENV['DISALLOW_UNAUTHENTICATED_API_ACCESS'] == 'true' || Rails.configuration.x.limited_federation_mode
+    if base && ENV['PUBLIC_TIMELINE_ACCESS'] == 'true'
+      return false if action_name == 'index'
+    end
+    base
+  end
+
   def pagination_params(core_params)
     params.slice(:limit, *AccountStatusesFilter::KEYS).permit(:limit, *AccountStatusesFilter::KEYS).merge(core_params)
   end

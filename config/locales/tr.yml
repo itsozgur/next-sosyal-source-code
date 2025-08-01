@@ -1,10 +1,10 @@
 ---
 tr:
   about:
-    about_mastodon_html: Mastodon <em>ücretsiz ve açık kaynaklı</em> bir sosyal ağdır. <em>Merkezi olmayan</em> yapısı sayesinde diğer ticari sosyal platformların aksine iletişimininizin tek bir firmada tutulmasının/yönetilmesinin önüne geçer. Güvendiğiniz bir sunucuyu seçerek oradaki kişilerle etkileşimde bulunabilirsiniz. Herkes kendi Mastodon sunucusunu kurabilir ve sorunsuz bir şekilde Mastodon <em>sosyal ağına</em> dahil edebilir!
+    about_mastodon_html: "%{APP_NAME} <em>ücretsiz ve açık kaynaklı</em> bir sosyal ağdır. <em>Merkezi olmayan</em> yapısı sayesinde diğer ticari sosyal platformların aksine iletişimininizin tek bir firmada tutulmasının/yönetilmesinin önüne geçer. Güvendiğiniz bir sunucuyu seçerek oradaki kişilerle etkileşimde bulunabilirsiniz. Herkes kendi %{APP_NAME} sunucusunu kurabilir ve sorunsuz bir şekilde %{APP_NAME} <em>sosyal ağına</em> dahil edebilir!"
     contact_missing: Ayarlanmadı
     contact_unavailable: Bulunamadı
-    hosted_on: Mastodon %{domain} üzerinde barındırılıyor
+    hosted_on: "%{APP_NAME} %{domain} üzerinde barındırılıyor"
     title: Hakkında
   accounts:
     followers:
@@ -171,6 +171,38 @@ tr:
       warn: Uyar
       web: Web
       whitelisted: Beyaz listede
+    badges:
+      add: Ekle
+      added: Eklendi!
+      adding: Ekleniyor...
+      already_exists: Zaten mevcut
+      assign_badge: Rozet Ata
+      badge_added_success: Rozet başarıyla eklendi!
+      badge_already_assigned: Bu rozet bu kullanıcıya zaten atanmış
+      badge_label: Rozet
+      badge_not_found: Kullanıcıda rozet bulunamadı!
+      badge_not_found_text: Rozet bulunamadı
+      badge_removed_success: Rozet başarıyla çıkarıldı!
+      description: Kullanıcı rozetlerini ata ve yönet
+      error: Hata!
+      error_adding: Rozet ekleme hatası!
+      error_removing: Rozet çıkarma hatası!
+      loading: Yükleniyor...
+      load_more: Daha fazla yükle
+      not_found: Bulunamadı
+      remove: Çıkar
+      removed: Çıkarıldı!
+      removing: Çıkarılıyor...
+      search_and_select_user: Kullanıcı ara ve seç...
+      search_error: Arama hatası oluştu
+      search_users: Kullanıcı ara...
+      search_users_subtitle: Kullanıcı ara ve rozet ata
+      select: Seç
+      select_badge: Rozet Seç
+      select_user_and_badge: Lütfen kullanıcı ve rozet seçin
+      title: Rozetler
+      user: Kullanıcı
+      user_not_found: Kullanıcı bulunamadı
     action_logs:
       action_types:
         approve_appeal: İtirazı Onayla
@@ -187,6 +219,7 @@ tr:
         create_domain_block: Engellenen Alan Adı Oluştur
         create_email_domain_block: E-Posta Alan Adı Engeli Oluştur
         create_ip_block: IP kuralı oluştur
+        create_relay: Aktarıcı Oluştur
         create_unavailable_domain: Mevcut Olmayan Alan Adı Oluştur
         create_user_role: Rol Oluştur
         demote_user: Kullanıcıyı Düşür
@@ -198,18 +231,22 @@ tr:
         destroy_email_domain_block: E-posta Alan Adı Engelini Sil
         destroy_instance: Alan adını temizle
         destroy_ip_block: IP kuralını sil
+        destroy_relay: Aktarıcı Sil
         destroy_status: Durumu Sil
         destroy_unavailable_domain: Mevcut Olmayan Alan Adı Sil
         destroy_user_role: Rolü Kaldır
         disable_2fa_user: 2AD Kapat
         disable_custom_emoji: Özel İfadeyi Devre Dışı Bırak
+        disable_relay: Aktarıcıyı Devre Dışı Bırak
         disable_sign_in_token_auth_user: Kullanıcı için E-posta Token Doğrulamayı Devre Dışı Bırak
         disable_user: Kullanıcıyı Devre Dışı Bırak
         enable_custom_emoji: Özel İfadeyi Etkinleştir
+        enable_relay: Aktarıcıyı Etkinleştir
         enable_sign_in_token_auth_user: Kullanıcı için E-posta Token Doğrulamayı Etkinleştir
         enable_user: Kullanıcıyı Etkinleştir
         memorialize_account: Hesabı Anıtlaştır
         promote_user: Kullanıcıyı Yükselt
+        publish_terms_of_service: Hizmet Şartlarını Yayınla
         reject_appeal: İtirazı Reddet
         reject_user: Kullanıcıyı Reddet
         remove_avatar_user: Profil Resmini Kaldır
@@ -247,6 +284,7 @@ tr:
         create_domain_block_html: "%{name}, %{target} alan adını engelledi"
         create_email_domain_block_html: "%{name}, %{target} e-posta alan adını engelledi"
         create_ip_block_html: "%{name}, %{target} IP adresi için kural oluşturdu"
+        create_relay_html: "%{name}, %{target} aktarıcısını oluşturdu"
         create_unavailable_domain_html: "%{name}, %{target} alan adına teslimatı durdurdu"
         create_user_role_html: "%{name}, %{target} rolünü oluşturdu"
         demote_user_html: "%{name}, %{target} kullanıcısını düşürdü"
@@ -258,18 +296,22 @@ tr:
         destroy_email_domain_block_html: "%{name}, %{target} e-posta alan adı engelini kaldırdı"
         destroy_instance_html: "%{name}, %{target} alan adını temizledi"
         destroy_ip_block_html: "%{name}, %{target} IP adresi kuralını sildi"
+        destroy_relay_html: "%{name}, %{target} aktarıcısını sildi"
         destroy_status_html: "%{name}, %{target} kullanıcısının gönderisini kaldırdı"
         destroy_unavailable_domain_html: "%{name}, %{target} alan adına teslimatı sürdürdü"
         destroy_user_role_html: "%{name}, %{target} rolünü sildi"
         disable_2fa_user_html: "%{name}, %{target} kullanıcısının iki aşamalı doğrulama gereksinimini kapattı"
         disable_custom_emoji_html: "%{name}, %{target} emojisini devre dışı bıraktı"
+        disable_relay_html: "%{name}, %{target} aktarıcısını devre dışı bıraktı"
         disable_sign_in_token_auth_user_html: "%{name}, %{target} için e-posta token doğrulamayı devre dışı bıraktı"
         disable_user_html: "%{name}, %{target} kullanıcısı için oturum açmayı devre dışı bıraktı"
         enable_custom_emoji_html: "%{name}, %{target} emojisini etkinleştirdi"
+        enable_relay_html: "%{name}, %{target} aktarıcısını etkinleştirdi"
         enable_sign_in_token_auth_user_html: "%{name}, %{target} için e-posta token doğrulamayı etkinleştirdi"
         enable_user_html: "%{name}, %{target} kullanıcısı için oturum açmayı etkinleştirdi"
         memorialize_account_html: "%{name}, %{target} kullanıcısının hesabını bir anıt sayfaya dönüştürdü"
         promote_user_html: "%{name}, %{target} kullanıcısını yükseltti"
+        publish_terms_of_service_html: "%{name} hizmet şartları güncellemelerini yayınladı"
         reject_appeal_html: "%{name}, %{target} kullanıcısının yönetim kararına itirazını reddetti"
         reject_user_html: "%{name}, %{target} konumundan kaydı reddetti"
         remove_avatar_user_html: "%{name}, %{target} kullanıcısının avatarını kaldırdı"
@@ -690,7 +732,7 @@ tr:
         moderation: Denetim
         special: Özel
       delete: Sil
-      description_html: "<strong>Kullanıcı rolleri</strong> ile, kullanıcılarınızın Mastodon'un hangi işlevlerine ve alanlarına erişebileceğini düzenleyebilirsiniz."
+      description_html: "<strong>Kullanıcı rolleri</strong> ile, kullanıcılarınızın %{APP_NAME}'in hangi işlevlerine ve alanlarına erişebileceğini düzenleyebilirsiniz."
       edit: "'%{name}' rolünü düzenle"
       everyone: Varsayılan izinler
       everyone_full_description_html: Bu, herhangi bir rol atanmamış olanlar da olmak üzere <strong>tüm kullanıcıları</strong> etkileyen <strong>temel rol</strong>dür. Diğer tüm roller izinleri bu rolden alıyorlar.
@@ -753,24 +795,24 @@ tr:
         rules_hint: Kullanıcılarınızın uyması beklenen kurallar için özel bir alan var.
         title: Hakkında
       appearance:
-        preamble: Mastodon'un web arayüzünü düzenleyin.
+        preamble: "%{APP_NAME}'in web arayüzünü düzenleyin."
         title: Görünüm
       branding:
-        preamble: Sunucunuzun markalaşması ağdaki diğer sunuculardan farklıdır. Bu bilgiler Mastodon'un web arayüzü, doğal uygulamalar, diğer sitelerdeki ve ileti uygulamalarındaki bağlantı önizlemeleri, vb. gibi çeşitli ortamlarda görüntülenebilir. Bu nedenle bu bilgiyi açık, kısa ve özlü tutmak en iyisidir.
+        preamble: "Sunucunuzun markalaşması ağdaki diğer sunuculardan farklıdır. Bu bilgiler %{APP_NAME}'in web arayüzü, doğal uygulamalar, diğer sitelerdeki ve ileti uygulamalarındaki bağlantı önizlemeleri, vb. gibi çeşitli ortamlarda görüntülenebilir. Bu nedenle bu bilgiyi açık, kısa ve özlü tutmak en iyisidir."
         title: Marka
       captcha_enabled:
         desc_html: Bu, güvenlik ve gizlilikle ilgili bir endişe kaynağı olabilecek hCaptcha'nın harici komut dosyalarına dayanır. Ayrıca <strong>bu, kayıt sürecini bazı (özellikle engelli) kişiler için önemli ölçüde daha az erişilebilir hale getirebilir</strong>. Bu nedenlerle, lütfen onaya dayalı veya davete dayalı kayıt gibi alternatif önlemleri göz önünde bulundurun.
         title: Yeni kullanıcıların hesaplarını doğrulamaları için bir CAPTCHA çözmelerini gerektir
       content_retention:
         danger_zone: Tehlikeli bölge
-        preamble: Kullanıcıların ürettiği içeriğin Mastodon'da nasıl saklanacağını denetleyin.
+        preamble: Kullanıcıların ürettiği içeriğin %{APP_NAME}'de nasıl saklanacağını denetleyin.
         title: İçerik saklama
       default_noindex:
         desc_html: Bu ayarı kendileri değiştirmeyen tüm kullanıcıları etkiler
         title: Varsayılan olarak kullanıcıları arama motoru indekslemesinin dışında tut
       discovery:
         follow_recommendations: Takip önerileri
-        preamble: İlginç içeriği gezinmek, Mastodon'da kimseyi tanımayan yeni kullanıcıları alıştırmak için oldukça etkilidir. Sunucunuzdaki çeşitli keşif özelliklerinin nasıl çalıştığını denetleyin.
+        preamble: İlginç içeriği gezinmek, %{APP_NAME}'de kimseyi tanımayan yeni kullanıcıları alıştırmak için oldukça etkilidir. Sunucunuzdaki çeşitli keşif özelliklerinin nasıl çalıştığını denetleyin.
         profile_directory: Profil dizini
         public_timelines: Genel zaman çizelgeleri
         publish_discovered_servers: Keşfedilen sunucuları yayınla
@@ -797,12 +839,31 @@ tr:
         authorized_fetch_overridden_hint: Bir ortam değişkeni tarafından geçersiz kılındığı için şu anda bu ayarı değiştiremezsiniz.
         federation_authentication: Dağıtık kimlik doğrulama uygulaması
       title: Sunucu ayarları
+      feedback: "Geri Bildirim"
+      feedback_title: "Geri Bildirim Formu"
+      feedback_description: "Ürün veya hizmetimiz hakkında geri bildirimde bulunun."
+      feedback_placeholder: "Lütfen detaylı açıklama yazınız"
+      feedback_rating: "Memnuniyet Dereceniz"
+      feedback_rating_very_dissatisfied: "Kötü"
+      feedback_rating_dissatisfied: "İyi Değil"
+      feedback_rating_neutral: "İyi"
+      feedback_rating_satisfied: "İyi Görünüyor"
+      feedback_rating_very_satisfied: "Çok İyi"
+      feedback_description_field: "Açıklama metni"
+      feedback_file_label: "Ekran görüntüsü veya dosya ekleyebilirsiniz"
+      feedback_file_placeholder: "Henüz dosya seçilmedi"
+      feedback_file_button: "Dosya Seç"
+      feedback_contact_permission: "Geri bildirimle ilgili iletişime geçilebilir"
+      preferences_bildirim: Bildirim Ayarları
+      preferences_feedback: Geribildirim Ayarları
+      feedback_comments: Yorumunuz
+      feedback_description: Düşüncelerinizi bizimle paylaşın. Önerileriniz, bulduğunuz hatalar veya sistemle ilgili herhangi bir görüşünüz olabilir.
     site_uploads:
       delete: Yüklenen dosyayı sil
       destroyed_msg: Site yüklemesi başarıyla silindi!
     software_updates:
       critical_update: Kritik — lütfen hemen güncelleyin
-      description: Son düzeltme ve özelliklerden yararlanmak için Mastodon kurulumunu güncel tutmanızı öneriyoruz. Üstelik güvenlik sorunlarından kaçınmak için Mastodon'u zamanında güncellemek kritiktir. Bu nedenlerle Mastodon her 30 dakikada bir güncellemeleri denetler ve e-posta bildirim seçeneğinize göre size haber verir.
+      description: Son düzeltme ve özelliklerden yararlanmak için %{APP_NAME} kurulumunu güncel tutmanızı öneriyoruz. Üstelik güvenlik sorunlarından kaçınmak için %{APP_NAME}'i zamanında güncellemek kritiktir. Bu nedenlerle %{APP_NAME} her 30 dakikada bir güncellemeleri denetler ve e-posta bildirim seçeneğinize göre size haber verir.
       documentation_link: Daha fazlası
       release_notes: Sürüm notları
       title: Mevcut güncellemeler
@@ -818,8 +879,10 @@ tr:
       back_to_account: Hesap sayfasına geri dön
       back_to_report: Bildirim sayfasına geri dön
       batch:
+        add_to_report: "#%{id} raporuna ekle"
         remove_from_report: Bildirimden kaldır
         report: Bildirim
+      contents: İçerikler
       deleted: Silindi
       favourites: Favoriler
       history: Sürüm geçmişi
@@ -828,13 +891,17 @@ tr:
       media:
         title: Medya
       metadata: Üstveri
+      no_history: Bu gönderi düzenlenmemiş
       no_status_selected: Hiçbiri seçilmediğinden hiçbir durum değiştirilmedi
       open: Gönderiyi aç
       original_status: Özgün gönderi
       reblogs: Yeniden Paylaşımlar
+      replied_to_html: Yanıtladı %{acct_link}
       status_changed: Gönderi değişti
-      title: Hesap durumları
+      status_title: "@%{name} gönderisi"
+      title: Hesap gönderileri - @%{name}
       trending: Öne çıkanlar
+      view_publicly: Herkese açık görüntüle
       visibility: Görünürlük
       with_media: Medya ile
     strikes:
@@ -860,7 +927,7 @@ tr:
         message_html: Elasticsearch indeks eşlemeleri artık güncel değil. Lütfen <code>tootctl search deploy --only=%{value}</code> komutunu çalıştırın
       elasticsearch_preset:
         action: Belgelere bakın
-        message_html: Elasticsearch kümenizin birden fazla düğümü var ama Mastodon onları kullanmak üzere yapılandırılmamış.
+        message_html: Elasticsearch kümenizin birden fazla düğümü var ama %{APP_NAME} onları kullanmak üzere yapılandırılmamış.
       elasticsearch_preset_single_node:
         action: Belgelere bakın
         message_html: Elasticsearch kümenizin tek bir düğümü var, <code>ES_PRESET</code> değişkenine <code>single_node_cluster</code> değeri verilmelidir.
@@ -878,13 +945,13 @@ tr:
         message_html: "%{value} kuyruk(lar)ı için herhangi bir Sidekiq süreci çalışmıyor. Lütfen Sidekiq yapılandırmanızı gözden geçirin"
       software_version_check:
         action: Mevcut güncellemeleri görün
-        message_html: Mastodon güncellemesi mevcut.
+        message_html: "%{APP_NAME} güncellemesi mevcut."
       software_version_critical_check:
         action: Mevcut güncellemeleri göster
-        message_html: Kritik bir Mastodon güncellemesi var, lütfen en kısa sürede güncelleyin.
+        message_html: Kritik bir %{APP_NAME} güncellemesi var, lütfen en kısa sürede güncelleyin.
       software_version_patch_check:
         action: Mevcut güncellemeleri göster
-        message_html: Mastodon yama güncellemesi mevcut.
+        message_html: "%{APP_NAME} yama güncellemesi mevcut."
       upload_check_privacy_error:
         action: Daha fazla bilgi için buraya tıklayın
         message_html: "<strong>Web sunucunuz hatalı yapılandırılmış. Kullanıcılarınızın gizliliği tehlikede.</strong>"
@@ -911,6 +978,35 @@ tr:
       search: Ara
       title: Etiketler
       updated_msg: Etiket ayarları başarıyla güncellendi
+    terms_of_service:
+      back: Hizmet şartlarına dön
+      changelog: Ne Değişti
+      create: Kendinizinkini kullanın
+      current: Şimdiki
+      draft: Taslak
+      generate: Şablon kullan
+      generates:
+        action: Oluştur
+        chance_to_review_html: "<strong>Üretilmiş hizmet şartları otomatik olarak yayınlanmayacaktır.</strong> Sonucu gözden geçirme şansınız olacaktır. Devam etmek için lütfen gerekli ayrıntıları doldurun."
+        explanation_html: Sağlanan hizmet şartları şablonu yalnızca bilgilendirme amaçlıdır ve herhangi bir konuda yasal tavsiye olarak yorumlanmamalıdır. Lütfen durumunuz ve belirli yasal sorularınız hakkında kendi hukuk müşavirinize danışın.
+        title: Hizmet Şartları Kurulumu
+      history: Tarihçe
+      live: Canlı
+      no_history: Henüz kaydedilmiş hizmet şartları değişikliği yok.
+      no_terms_of_service_html: Şu anda yapılandırılmış herhangi bir hizmet şartınız yok. Hizmet şartları, kullanıcılarınızla olan anlaşmazlıklarda netlik sağlamak ve sizi olası yükümlülüklerden korumak içindir.
+      notified_on_html: Kullanıcılar %{date} tarihinde bilgilendirildi
+      notify_users: Kullanıcılara bildir
+      preview:
+        explanation_html: 'E-posta, %{date} tarihinden önce kaydolan <strong>%{display_count} kullanıcıya</strong> gönderilecektir. E-posta içerisinde aşağıdaki metin yer alacaktır:'
+        send_preview: Ön izlemeyi %{email} adresine gönder
+        send_to_all:
+          one: "%{display_count} e-posta gönder"
+          other: "%{display_count} e-posta gönder"
+        title: Hizmet şartları bildirimini öz izle
+      publish: Yayınla
+      published_on_html: "%{date} tarihinde yayınlandı"
+      save_draft: Taslağı kaydet
+      title: Hizmet Şartları
     title: Yönetim
     trends:
       allow: İzin ver
@@ -995,7 +1091,7 @@ tr:
     webhooks:
       add_new: Uç nokta ekle
       delete: Sil
-      description_html: Bir <strong>web kancası</strong> Mastodon'un, uygulamanızda seçili olaylar hakkında <strong>gerçek zamanlı bildirimler</strong> göndermesini sağlar, böylece uygulamanız <strong>otomatik olarak tepkileri tetikleyebilir</strong>.
+      description_html: Bir <strong>web kancası</strong> %{APP_NAME}'in, uygulamanızda seçili olaylar hakkında <strong>gerçek zamanlı bildirimler</strong> göndermesini sağlar, böylece uygulamanız <strong>otomatik olarak tepkileri tetikleyebilir</strong>.
       disable: Devre dışı bırak
       disabled: Devre dışı
       edit: Uç nokta düzenle
@@ -1029,8 +1125,8 @@ tr:
       next_steps: Yönetim kararını geri almak için itirazı onaylayabilir veya itirazı görmezden gelebilirsiniz.
       subject: "%{username}, %{instance} hakkındaki bir yönetim kararına itiraz ediyor"
     new_critical_software_updates:
-      body: Mastodon'un yeni kritik sürümleri yayınlandı, en kısa sürede güncellemek isteyebilirsiniz!
-      subject: "%{instance} için kritik Mastodon güncellemeleri mevcut!"
+      body: "%{APP_NAME}'in yeni kritik sürümleri yayınlandı, en kısa sürede güncellemek isteyebilirsiniz!"
+      subject: "%{instance} için kritik %{APP_NAME} güncellemeleri mevcut!"
     new_pending_account:
       body: Yeni hesabın detayları aşağıdadır. Bu başvuruyu onaylayabilir ya da reddedebilirsiniz.
       subject: "%{instance} üzerinde gözden geçirmek için yeni hesap (%{username})"
@@ -1039,8 +1135,8 @@ tr:
       body_remote: "%{domain} alan adından birisi %{target} kişisini bildirdi"
       subject: "%{instance} için yeni şikayet (#%{id})"
     new_software_updates:
-      body: Yeni Mastodon sürümleri yayınlandı, güncellemek isteyebilirsiniz!
-      subject: "%{instance} için yeni Mastodon sürümleri mevcut!"
+      body: Yeni %{APP_NAME} sürümleri yayınlandı, güncellemek isteyebilirsiniz!
+      subject: "%{instance} için yeni %{APP_NAME} sürümleri mevcut!"
     new_trends:
       body: 'Aşağıdaki öğeler herkese açık olarak gösterilmeden önce gözden geçirilmelidir:'
       new_trending_links:
@@ -1064,8 +1160,8 @@ tr:
     confirmation_dialogs: Onay iletişim kutuları
     discovery: Keşfet
     localization:
-      body: Mastodon, gönüllüler tarafından çevrilmektedir.
-      guide_link: https://crowdin.com/project/mastodon
+      body: "%{APP_NAME}, geliştiriciler tarafından çevrilmektedir."
+      # guide_link: https://crowdin.com/project/mastodon
       guide_link_text: Herkes katkıda bulunabilir.
     sensitive_content: Hassas içerik
   application_mailer:
@@ -1103,9 +1199,9 @@ tr:
     delete_account: Hesabı sil
     delete_account_html: Hesabını silmek istersen, <a href="%{path}">buradan devam edebilirsin</a>. Onay istenir.
     description:
-      prefix_invited_by_user: "@%{name} sizi bu Mastodon sunucusuna katılmaya davet ediyor!"
-      prefix_sign_up: Bugün Mastodon'a kaydolun!
-      suffix: Bir hesapla, kişileri takip edebilir, güncellemeler gönderebilir, herhangi bir Mastodon sunucusundan kullanıcılarla mesaj alışverişinde bulunabilir ve daha birçok şey yapabilirsin!
+      prefix_invited_by_user: "@%{name} sizi %{APP_NAME}'e katılmaya davet ediyor!"
+      prefix_sign_up: Bugün %{APP_NAME}'e kaydolun!
+      suffix: Bir hesapla, kişileri takip edebilir, güncellemeler gönderebilir, herhangi bir %{APP_NAME} sunucusundan kullanıcılarla mesaj alışverişinde bulunabilir ve daha birçok şey yapabilirsin!
     didnt_get_confirmation: Onaylama bağlantısını almadınız mı?
     dont_have_your_security_key: Güvenlik anahtarınız yok mu?
     forgot_password: Parolanızı mı unuttunuz?
@@ -1118,7 +1214,6 @@ tr:
     migrate_account: Farklı bir hesaba taşıyın
     migrate_account_html: Bu hesabı başka bir hesaba yönlendirmek istiyorsan, <a href="%{path}">buradan yapılandırabilirsin</a>.
     or_log_in_with: 'Veya şununla oturum açın:'
-    privacy_policy_agreement_html: <a href="%{privacy_policy_path}" target="_blank">Gizlilik politikasını</a> okudum ve kabul ettim
     progress:
       confirm: E-postanızı onaylayın
       details: Ayrıntılarınız
@@ -1143,7 +1238,7 @@ tr:
     set_new_password: Yeni parola belirle
     setup:
       email_below_hint_html: İstenmeyenler dizininize bakın veya başka bir onay bağlantısı isteyin. Eğer yanlışsa e-posta adresinizi de düzeltebilirsiniz.
-      email_settings_hint_html: "%{email} adresinizi doğrulamak için size gönderdiğimiz bağlantıya tıklayın. Biz burada bekliyoruz."
+      email_settings_hint_html: "%{APP_NAME} kullanmaya başlamak %{email} adresine gönderdiğimiz bağlantıya tıklayın. Sizi burada bekliyoruz."
       link_not_received: Bağlantı gelmedi mi?
       new_confirmation_instructions_sent: Birkaç dakika içerisinde onaylama bağlantısını içeren yeni bir e-posta alacaksınız!
       title: Gelen kutunuzu kontrol edin
@@ -1152,7 +1247,7 @@ tr:
       title: "%{domain} giriş yapın"
     sign_up:
       manual_review: "%{domain} kayıtları moderatörler tarafından manuel olarak inceleniyor. Kaydınızı işlememizi kolaylaştırmak için kendiniz ve %{domain} sunucusundan neden hesap istediğiniz hakkında biraz bilgi verin."
-      preamble: Bu Mastodon sunucusu üzerinden bir hesap ile ağdaki herhangi bir kişiyi, hesabı hangi sunucuda saklanırsa saklansın, takip edebilirsiniz.
+      preamble: Bu %{APP_NAME} sunucusu üzerinden bir hesap ile fediverseteki herhangi bir kişiyi, hangi sunucuda olursa olsun, takip edebilirsiniz.
       title: "%{domain} için kurulumunuzu yapalım."
     status:
       account_status: Hesap durumu
@@ -1164,9 +1259,11 @@ tr:
       view_strikes: Hesabınıza yönelik eski eylemleri görüntüleyin
     too_fast: Form çok hızlı gönderildi, tekrar deneyin.
     use_security_key: Güvenlik anahtarını kullan
+    user_agreement_html: <a href="%{terms_of_service_path}" target="_blank">hizmet şartları</a> ve <a href="%{privacy_policy_path}" target="_blank">gizlilik politikasını</a> okudum ve kabul ediyorum
+    user_privacy_agreement_html: <a href="%{privacy_policy_path}" target="_blank">Gizlilik politikasını</a> okudum ve kabul ettim
   author_attribution:
     example_title: Örnek metin
-    hint_html: Mastodon dışında haber veya günlük yazıları mı yazıyorsunuz? Bu yazılar Mastodon'da paylaşıldığında size nasıl atıf yapılacağını denetleyin.
+    hint_html: "%{APP_NAME} dışında haber veya günlük yazıları mı yazıyorsunuz? Bu yazılar %{APP_NAME}'de paylaşıldığında size nasıl atıf yapılacağını denetleyin."
     instructions: 'Bu kodun yazınızın HTML''sinde olduğundan emin olun:'
     more_from_html: "%{name} kişisinden daha fazlası"
     s_blog: "%{name} kişisinin Günlüğü"
@@ -1263,7 +1360,7 @@ tr:
       content: Üzgünüz, ancak bir şey ters gitti.
       title: Bu sayfa doğru değil
     '503': Geçici sunucu hatası nedeniyle sayfa görüntülenemedi.
-    noscript_html: Mastodon web uygulamasını kullanmak için lütfen JavaScript'i etkinleştirin. Alternatif olarak, platformunuz için Mastodon <a href="%{apps_path}">yerel uygulamalardan</a> birini deneyin.
+    noscript_html: "%{APP_NAME} web uygulamasını kullanmak için lütfen JavaScript'i etkinleştirin. Alternatif olarak, platformunuz için %{APP_NAME} <a href='%{apps_path}'>yerel uygulamalardan</a> birini deneyin."
   existing_username_validator:
     not_found: bu kullanıcı adına sahip yerel bir kullanıcı bulunamadı
     not_found_multiple: "%{usernames} bulunamadı"
@@ -1287,6 +1384,11 @@ tr:
     errors:
       limit: Zaten azami etiket sayısını öne çıkardınız
     hint_html: "<strong>Öne çıkan etiketler nelerdir?</strong> Genel profilinizde belirgin bir şekilde görüntülenirler ve kişilerin genel yayınlarınıza özellikle bu etiketler altında göz atmalarına izin verir. Yaratıcı çalışmaları veya uzun vadeli projeleri takip etmek için harika bir araçtır."
+    feedback: Geri Bildirim
+    feedback_title: Geri Bildiriminiz
+    feedback_description: Görüşleriniz bizim için değerli. Lütfen düşüncelerinizi, önerilerinizi veya karşılaştığınız sorunları bizimle paylaşın.
+    feedback_placeholder: Geri bildiriminizi buraya yazın...
+    import: İçe aktar
   filters:
     contexts:
       account: Profiller
@@ -1346,6 +1448,7 @@ tr:
     none: Hiçbiri
     order_by: Sıralama ölçütü
     save_changes: Değişiklikleri kaydet
+    feedback: Geri Bildirim Gönder
     select_all_matching_items:
       one: Aramanızla eşleşen %{count} öğeyi seç.
       other: Aramanızla eşleşen tüm %{count} öğeyi seç.
@@ -1369,19 +1472,43 @@ tr:
       overwrite: Üzerine yaz
       overwrite_long: Mevcut kayıtları yenileriyle değiştir
     overwrite_preambles:
-      blocking_html: "<strong>Engel listenizi</strong>, <strong>%{filename}</strong> dosyasından, <strong>%{total_items} hesapla</strong> değiştirmek üzeresiniz."
-      bookmarks_html: "<strong>Yerimlerinizi</strong>, <strong>%{filename}</strong> dosyasından, <strong>%{total_items} gönderiyle</strong> değiştirmek üzeresiniz."
-      domain_blocking_html: "<strong>Alan adı engel listenizi</strong>, <strong>%{filename}</strong> dosyasından, <strong>%{total_items} alan adıyla</strong> değiştirmek üzeresiniz."
-      following_html: "<strong>%{filename}</strong> dosyasından <strong>%{total_items} hesabı</strong> <strong>takip etmeye</strong> başlamak ve <strong>diğer herkesi takipten çıkmak</strong> üzeresiniz."
-      lists_html: Listelerinizi <strong>%{filename}</strong> içeriğiyle <strong>değiştirmek</strong> üzeresiniz. Yeni listelere en fazla <strong>%{total_items} hesap</strong> eklenecek.
-      muting_html: "<strong>Sessize alınmış hesaplar listenizi</strong>, <strong>%{filename}</strong> dosyasından, <strong>%{total_items} hesapla</strong> değiştirmek üzeresiniz."
+      blocking_html:
+        one: "<strong>Engelleme listenizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> ile değiştirmek üzeresiniz."
+        other: "<strong>Engelleme listenizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> ile değiştirmek üzeresiniz."
+      bookmarks_html:
+        one: "<strong>Yerimlerinizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} gönderi</strong> ile değiştirmek üzeresiniz."
+        other: "<strong>Yerimlerinizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} gönderi</strong> ile değiştirmek üzeresiniz."
+      domain_blocking_html:
+        one: "<strong>Alan adı engelleme listenizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} alan adı</strong> ile değiştirmek üzeresiniz."
+        other: "<strong>Alan adı engelleme listenizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} alan adı</strong> ile değiştirmek üzeresiniz."
+      following_html:
+        one: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesabı</strong> <strong>takip etmek</strong> ve <strong>diğer herkesin takibini bırakmak</strong> üzeresiniz."
+        other: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesabı</strong> <strong>takip etmek</strong> ve <strong>diğer herkesin takibini bırakmak</strong> üzeresiniz."
+      lists_html:
+        one: "<strong>Listelerinizi</strong>, <strong>%{filename}</strong> dosya içeriğiyle değiştirmek üzeresiniz. <strong>%{count} hesap</strong> yeni listelere eklenecektir."
+        other: "<strong>Listelerinizi</strong>, <strong>%{filename}</strong> dosya içeriğiyle değiştirmek üzeresiniz. <strong>%{count} hesap</strong> yeni listelere eklenecektir."
+      muting_html:
+        one: "<strong>Sessize alınmış hesap listenizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> ile değiştirmek üzeresiniz."
+        other: "<strong>Sessize alınmış hesap listenizi</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> ile değiştirmek üzeresiniz."
     preambles:
-      blocking_html: "<strong>%{filename}</strong> dosyasından <strong>%{total_items} hesabı</strong> <strong>engellemek</strong> üzeresiniz."
-      bookmarks_html: "<strong>%{filename}</strong> dosyasından <strong>%{total_items} gönderiyi</strong> <strong>yerimlerinize</strong> eklemek üzeresiniz."
-      domain_blocking_html: "<strong>%{filename}</strong> dosyasından <strong>%{total_items} alan adını</strong> <strong>engellemek</strong> üzeresiniz."
-      following_html: "<strong>%{filename}</strong> dosyasından <strong>%{total_items} hesabı</strong> <strong>takip etmek</strong> üzeresiniz."
-      lists_html: "<strong>Listelerinize</strong> <strong>%{filename}</strong> dosyasından en fazla <strong>%{total_items} hesap</strong> eklemek üzeresiniz. Eklenecek bir liste olmaması durumunda yeni listeler oluşturulacaktır."
-      muting_html: "<strong>%{filename}</strong> dosyasından <strong>%{total_items} hesabı</strong> <strong>sessize almak</strong> üzeresiniz."
+      blocking_html:
+        one: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> <strong>engellemek</strong> üzeresiniz."
+        other: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> <strong>engellemek</strong> üzeresiniz."
+      bookmarks_html:
+        one: "<strong>Yerimlerinize</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} gönderi</strong> eklemek üzeresiniz."
+        other: "<strong>Yerimlerinize</strong>, <strong>%{filename}</strong> dosyasından <strong>%{count} gönderi</strong> eklemek üzeresiniz."
+      domain_blocking_html:
+        one: "<strong>%{filename}</strong> dosyasından <strong>%{count} alan adı</strong> <strong>engellemek</strong> üzeresiniz."
+        other: "<strong>%{filename}</strong> dosyasından <strong>%{count} alan adı</strong> <strong>engellemek</strong> üzeresiniz."
+      following_html:
+        one: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> <strong>takip etmek</strong> üzeresiniz."
+        other: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesap</strong> <strong>takip etmek</strong> üzeresiniz."
+      lists_html:
+        one: "<strong>Listelerinize</strong>, <strong>%{filename}</strong> <strong>%{count} hesap</strong> eklemek üzeresiniz. Eklenecek liste yoksa yeni listeler oluşturulacaktır."
+        other: "<strong>Listelerinize</strong>, <strong>%{filename}</strong> <strong>%{count} hesap</strong> eklemek üzeresiniz. Eklenecek liste yoksa yeni listeler oluşturulacaktır."
+      muting_html:
+        one: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesabı</strong> <strong>sessize almak</strong> üzeresiniz."
+        other: "<strong>%{filename}</strong> dosyasından <strong>%{count} hesabı</strong> <strong>sessize almak</strong> üzeresiniz."
     preface: Diğer sunucudan alarak oluşturduğunuz dosyalar sayesinde, bu sunucudaki hesabınıza takipçilerinizi aktarabilir veya istemediğiniz kişileri otomatik olarak engelleyebilirsiniz.
     recent_imports: Son içe aktarmalar
     states:
@@ -1452,7 +1579,7 @@ tr:
     unsubscribe:
       action: Evet, abonelikten çık
       complete: Abonelikten çık
-      confirmation_html: '%{domain} üzerindeki Mastodon için %{type} almayı durdurarak %{email} adresinize aboneliğinizi iptal etmek istediğinizden emin misiniz? <a href="%{settings_path}">e-posta bildirim ayarlarınızdan</a> her zaman yeniden abone olabilirsiniz.'
+      confirmation_html: '%{domain} üzerindeki %{APP_NAME} için %{type} almayı durdurarak %{email} adresinize aboneliğinizi iptal etmek istediğinizden emin misiniz? <a href="%{settings_path}">e-posta bildirim ayarlarınızdan</a> her zaman yeniden abone olabilirsiniz.'
       emails:
         notification_emails:
           favourite: favori bildirim e-postaları
@@ -1461,7 +1588,7 @@ tr:
           mention: bahsetme bildirim e-postaları
           reblog: öne çıkanlar bildirim e-postaları
       resubscribe_html: Abonelikten yanlışlıkla çıktıysanız, <a href="%{settings_path}">e-posta bildirim ayarlarınızdan</a> yeniden abone olabilirsiniz.
-      success_html: Artık %{email} adresindeki e-postanıza %{domain} üzerindeki Mastodon için %{type} almayacaksınız.
+      success_html: Artık %{email} adresindeki e-postanıza %{domain} üzerindeki %{APP_NAME} için %{type} almayacaksınız.
       title: Abonelikten çık
   media_attachments:
     validations:
@@ -1469,6 +1596,9 @@ tr:
       not_found: "%{ids} medya dosyaları bulunamadı veya başka bir gönderiye zaten eklenmiş"
       not_ready: İşlemi tamamlanmamış dosyalar eklenemez. Birazdan tekrar deneyin!
       too_many: 4'ten fazla dosya eklenemiyor
+  statuses:
+    validations:
+      unsupported_language: Dil desteklenmiyor. İzin verilen diller %{allowed}
   migrations:
     acct: Taşındı
     cancel: Yönlendirmeyi iptal et
@@ -1587,13 +1717,13 @@ tr:
     posting_defaults: Gönderi varsayılanları
     public_timelines: Genel zaman çizelgeleri
   privacy:
-    hint_html: "<strong>Profilinizin ve gönderilerinizin nasıl bulunmasını istediğinizi yapılandırın.</strong> Mastodon'daki çeşitli özellik etkinleştirildiklerinde çok daha geniş bir izleyici kitlesine ulaşmanıza yardımcı olabilir. Durumunuza uyup uymadığını anlamak için bu ayarlara bir göz atın."
+    hint_html: "<strong>Profilinizin ve gönderilerinizin nasıl bulunmasını istediğinizi yapılandırın.</strong> %{APP_NAME}'deki çeşitli özellik etkinleştirildiklerinde çok daha geniş bir izleyici kitlesine ulaşmanıza yardımcı olabilir. Durumunuza uyup uymadığını anlamak için bu ayarlara bir göz atın."
     privacy: Gizlilik
     privacy_hint_html: Başkalarına ne kadar bilgi göstermek istediğinizi denetleyin. İnsanlar ilginç profilleri ve havalı uygulamaları diğer kişilerin takiplerine ve gönderileri paylaştıkları uygulamalara bakarak keşfederler, ama belki de gizli tutmak isteyebilirsiniz.
     reach: Erişim
     reach_hint_html: Yeni insanlar tarafından ne kadar keşfedilmek ve takip edilmek istediğinizi denetleyin. Gönderilerinizin Keşfet ekranında görüntülenmesini istiyor musunuz? Başkalarının takip önerileri listesinde görünmek istiyor musunuz? Tüm yeni takipçileri otomatik olarak kabul etmek mi yoksa her bir istek üzerinden ayrıntılı denetim mi istiyorsunuz?
     search: Ara
-    search_hint_html: Nasıl bulunmak istediğinizi denetleyin. Herkese açık gönderileriniz aracılığıyla daha fazla insanın sizi bulmasını istiyor musunuz? Mastodon dışındaki kişilerin webte arama yaptığında profilinizi bulmasını istiyor musunuz? Tüm arama motorlarından tamamen çıkmanın herkese açık bilgiler için garanti olmadığını lütfen unutmayın.
+    search_hint_html: Nasıl bulunmak istediğinizi denetleyin. Herkese açık gönderileriniz aracılığıyla daha fazla insanın sizi bulmasını istiyor musunuz? %{APP_NAME} dışındaki kişilerin webte arama yaptığında profilinizi bulmasını istiyor musunuz? Tüm arama motorlarından tamamen çıkmanın herkese açık bilgiler için garanti olmadığını lütfen unutmayın.
     title: Gizlilik ve erişim
   privacy_policy:
     title: Gizlilik Politikası
@@ -1638,7 +1768,7 @@ tr:
   scheduled_statuses:
     over_daily_limit: Bugün için %{limit} zamanlanmış gönderi sınırını aştınız
     over_total_limit: "%{limit} zamanlanmış gönderi sınırını aştınız"
-    too_soon: Programlanan tarih bugünden ileri bir tarihte olmalıdır
+    too_soon: tarih ileri bir tarih olmalıdır
   self_destruct:
     lead_html: Maalesef <strong>%{domain}</strong> kalıcı olarak kapanıyor. Eğer orada hesabınız varsa, onu kullanmaya devam edemeyeceksiniz, ancak yine de verinizin bir yedeğini isteyebilirsiniz.
     title: Bu sunucu kapanıyor
@@ -1668,7 +1798,7 @@ tr:
     current_session: Geçerli oturum
     date: Tarih
     description: "%{platform} - %{browser}"
-    explanation: Bunlar, Mastodon hesabınızda şu anda oturum açmış web tarayıcılarıdır.
+    explanation: Bunlar, %{APP_NAME} hesabınızda şu anda oturum açmış web tarayıcılarıdır.
     ip: IP
     platforms:
       adobe_air: Adobe Air
@@ -1694,12 +1824,27 @@ tr:
     aliases: Hesap takma adları
     appearance: Görünüm
     authorized_apps: Yetkili uygulamalar
-    back: Mastodon'a geri dön
+    back: "%{APP_NAME}'e geri dön"
     delete: Hesap silme
     development: Geliştirme
     edit_profile: Profili düzenle
     export: Dışa Aktar
     featured_tags: Öne çıkan etiketler
+    feedback: "Geri Bildirim"
+    feedback_title: "Geri Bildirim Formu"
+    feedback_description: "Ürün veya hizmetimiz hakkında geri bildirimde bulunun."
+    feedback_placeholder: "Lütfen detaylı açıklama yazınız"
+    feedback_rating: "Memnuniyet Dereceniz"
+    feedback_rating_very_dissatisfied: "Kötü"
+    feedback_rating_dissatisfied: "İyi Değil"
+    feedback_rating_neutral: "İyi"
+    feedback_rating_satisfied: "İyi Görünüyor"
+    feedback_rating_very_satisfied: "Çok İyi"
+    feedback_description_field: "Açıklama metni"
+    feedback_file_label: "Ekran görüntüsü veya dosya ekleyebilirsiniz"
+    feedback_file_placeholder: "Henüz dosya seçilmedi"
+    feedback_file_button: "Dosya Seç"
+    feedback_contact_permission: "Geri bildirimle ilgili iletişime geçilebilir"
     import: İçe aktar
     import_and_export: İçe ve dışa aktar
     migrate: Hesap taşıma
@@ -1707,7 +1852,7 @@ tr:
     preferences: Tercihler
     profile: Profil
     relationships: Takip edilenler ve takipçiler
-    severed_relationships: Kopmuş ilişkiler
+    severed_relationships: Engellenen hesaplar
     statuses_cleanup: Otomatik gönderi silme
     strikes: Moderasyon eylemleri
     two_factor_authentication: İki adımlı doğrulama
@@ -1801,10 +1946,12 @@ tr:
       too_late: Bu eyleme itiraz etmek için çok geç
   tags:
     does_not_match_previous_name: önceki adla eşleşmiyor
+  terms_of_service:
+    title: Hizmet Şartları
   themes:
-    contrast: Mastodon (Yüksek karşıtlık)
-    default: Mastodon (Karanlık)
-    mastodon-light: Mastodon (Açık)
+    contrast: "%{APP_NAME} (Yüksek karşıtlık)"
+    default: "%{APP_NAME} (Karanlık)"
+    mastodon-light: "%{APP_NAME} (Açık)"
     system: Otomatik (sistem temasını kullan)
   time:
     formats:
@@ -1844,7 +1991,7 @@ tr:
       subtitle: İtirazınız reddedildi.
       title: İtiraz reddedildi
     backup_ready:
-      explanation: Mastodon hesabınız tam bir yedeğini istediniz.
+      explanation: "%{APP_NAME} hesabınız tam bir yedeğini istediniz."
       extra: Şimdi indirebilirsiniz!
       subject: Arşiviniz indirilmeye hazır
       title: Arşiv paketlemesi
@@ -1861,6 +2008,15 @@ tr:
       further_actions_html: Eğer oturum açan siz değildiyseniz, hesabınızı güvenli tutmanız için hemen %{action} yapmanızı ve iki aşamalı yetkilendirmeyi etkinleştirmenizi öneriyoruz.
       subject: Hesabınıza yeni bir IP adresinden erişim oldu
       title: Yeni bir oturum açma
+    terms_of_service_changed:
+      agreement: "%{domain} sunucusunu kullanmaya devam ederek bu şartları kabul etmiş olursunuz. Güncellenen şartları kabul etmiyorsanız, %{domain} ile olan sözleşmenizi istediğiniz zaman hesabınızı silerek feshedebilirsiniz."
+      changelog: 'Bir bakışta, bu güncellemenin sizin için anlamı şudur:'
+      description: 'Bu e-postayı alıyorsunuz çünkü %{domain} adresindeki hizmet şartlarımızda bazı değişiklikler yapıyoruz. Aşağıda tümü yer alan güncellenen şartları incelemenizi öneriyoruz:'
+      description_html: Bu e-postayı alıyorsunuz çünkü %{domain} adresindeki hizmet şartlarımızda bazı değişiklikler yapıyoruz. <a href="%{path}" target="_blank">Tüm güncellenen şartları buraya tıklayarak</a> incelemenizi öneririz.
+      sign_off: "%{domain} Ekibi"
+      subject: Şimdiki hizmet şartlarımıza güncellemeler
+      subtitle: "%{domain} adresindeki hizmet şartları değişiyor"
+      title: Önemli güncelleme
     warning:
       appeal: Bir itiraz gönder
       appeal_description: Bunun bir hata olduğunu düşünüyorsanız, %{instance} sunucusunun personeline bir itiraz gönderebilirsiniz.
@@ -1896,7 +2052,7 @@ tr:
       apps_android_action: Google Play'den edinin
       apps_ios_action: App Store'dan İndirin
       apps_step: Resmi uygulamalarımızı indirin.
-      apps_title: Mastodon uygulamaları
+      apps_title: "%{APP_NAME} uygulamaları"
       checklist_subtitle: 'Bu yeni sosyal sınırda başlamanızı sağlar:'
       checklist_title: Hoşgeldiniz Yapılacaklar Listesi
       edit_profile_action: Kişiselleştir
@@ -1904,13 +2060,13 @@ tr:
       edit_profile_title: Profilinizi kişiselleştirin
       explanation: İşte sana başlangıç için birkaç ipucu
       feature_action: Daha fazlası
-      feature_audience: Mastodon, hedef kitlenizi aracılar olmadan yönetmeniz için size eşsiz bir olanak sağlar. Kendi altyapınızda barındırdığınız Mastodon sunucusu, çevrimiçi olarak başka bir Mastodon sunucusundan takip etmenizi ve takip edilmenizi sağlar ve sizden başka kimsenin kontrolü altında değildir.
+      feature_audience: "%{APP_NAME}, hedef kitlenizi aracılar olmadan yönetmeniz için size eşsiz bir olanak sağlar. Kendi altyapınızda barındırdığınız %{APP_NAME} sunucusu, çevrimiçi olarak başka bir %{APP_NAME} sunucusundan takip etmenizi ve takip edilmenizi sağlar ve sizden başka kimsenin kontrolü altında değildir."
       feature_audience_title: Kitlenizi güvenle oluşturun
-      feature_control: Ana akışınızda ne görmek istediğinizi en iyi siz biliyorsunuz. Algoritma veya zamanınızı harcayan reklamlar yok. Tek bir hesapla herhangi bir Mastodon sunucusunda olan bir kimseyi takip edin ve gönderilere zamana göre sıralanmış şekilde erişin. Kendi internet köşenizi biraz daha kendinize benzetin.
+      feature_control: Ana akışınızda ne görmek istediğinizi en iyi siz biliyorsunuz. Algoritma veya zamanınızı harcayan reklamlar yok. Tek bir hesapla herhangi bir %{APP_NAME} sunucusunda olan bir kimseyi takip edin ve gönderilere zamana göre sıralanmış şekilde erişin. Kendi internet köşenizi biraz daha kendinize benzetin.
       feature_control_title: Zaman akışınızın denetimi sizde kalsın
-      feature_creativity: Mastodon kendinizi çevrimiçi ifade edebilmenize yardımcı olmak için ses, video ve görsel, erişilebilirlik açıklamaları, anketler, içerik uyarıları, hareketli avatarlar, özel emojiler, önizleme resmini kesme denetimi ve daha fazlasını destekliyor. Kendi sanatınızı, müziğinizi veya podcastinizi yayınlıyorsanız Mastodon kullanımınıza açık.
+      feature_creativity: "%{APP_NAME} kendinizi çevrimiçi ifade edebilmenize yardımcı olmak için ses, video ve görsel, erişilebilirlik açıklamaları, anketler, içerik uyarıları, hareketli avatarlar, özel emojiler, önizleme resmini kesme denetimi ve daha fazlasını destekliyor. Kendi sanatınızı, müziğinizi veya podcastinizi yayınlıyorsanız %{APP_NAME} kullanımınıza açık."
       feature_creativity_title: Benzersiz yaratıcılık
-      feature_moderation: Mastodon karar vermeyi yeniden size bırakıyor. Her sunucu kendi kurallarını ve düzenlemelerini oluşturur. Bu kurallar da kurumsal sosyal medyalar gibi tepeden değil, yerel olarak uygulanıyor; bu da Mastodon'u farklı insan gruplarının ihtiyaçlarına yanıt vermede esnek kılıyor. Kurallarına katıldığınız bir sunucuya katılın veya kendi sunucunuzu barındırın.
+      feature_moderation: "%{APP_NAME} karar vermeyi yeniden size bırakıyor. Her sunucu kendi kurallarını ve düzenlemelerini oluşturur. Bu kurallar da kurumsal sosyal medyalar gibi tepeden değil, yerel olarak uygulanıyor; bu da %{APP_NAME}'i farklı insan gruplarının ihtiyaçlarına yanıt vermede esnek kılıyor. Kurallarına katıldığınız bir sunucuya katılın veya kendi sunucunuzu barındırın."
       feature_moderation_title: Olması gerektiği gibi moderasyon
       follow_action: Takip et
       follow_step: Kendi akışınızı düzenliyorsunuz. Hadi onu ilginç kullanıcılarla dolduralım.
@@ -1928,11 +2084,18 @@ tr:
       post_step: Dünyaya metin, fotoğraf, video ve anketlerle merhaba deyin.
       post_title: İlk gönderinizi oluşturun
       share_action: Paylaş
-      share_step: Arkadaşlarınıza Mastodon'da size nasıl ulaşabileceklerini söyleyin.
-      share_title: Mastodon profilinizi paylaşın
+      share_step: Arkadaşlarınıza %{APP_NAME}'de size nasıl ulaşabileceklerini söyleyin.
+      share_title: "%{APP_NAME} profilinizi paylaşın"
       sign_in_action: Oturum aç
-      subject: Mastodon'a hoş geldiniz
+      subject: "%{APP_NAME}'e hoş geldiniz"
       title: Gemiye hoşgeldin, %{name}!
+  quote_indicator:
+    quoting: Alıntılama
+    show_more: Daha fazla göster
+    show_less: Daha az göster
+  quote_preview:
+    quote: Alıntı
+  
   users:
     follow_limit_reached: "%{limit} kişiden daha fazlasını takip edemezsiniz"
     go_to_sso_account_settings: Kimlik sağlayıcı hesap ayarlarına gidin
@@ -1944,7 +2107,7 @@ tr:
   verification:
     extra_instructions_html: <strong>İpucu:</strong> Web sitenizdeki bağlantı görünmez olabilir. Önemli olan, kullanıcı tarafından oluşturulan içeriğe sahip web sitelerinde kimliğe bürünmeyi önleyen <code>rel="me"</code>'dir. Sayfa başlığında <code>a</code> yerine bir <code>bağlantı</code> etiketi de kullanabilirsiniz, ancak HTML'ye JavaScript çalıştırılmadan erişilebilir olmalıdır.
     here_is_how: İşte yapmanın yolu
-    hint_html: "<strong>Mastodon'da kendini doğrulamak herkese açık.</strong> Açık web standartlarına dayanır, şimdi ve her zaman ücretsizdir. Tüm gereken insanların sizi onunla tanımladığı bir kişisel websitesidir. Profilinizde bu websitesinin bağlantısını verdiğinizde, websitesinizin profilinize bağlantı verip vermediğini denetleyip üzerinde görsel bir işaret koyacağız."
+    hint_html: "<strong>%{APP_NAME}'de kendini doğrulamak herkese açık.</strong> Açık web standartlarına dayanır, şimdi ve her zaman ücretsizdir. Tüm gereken insanların sizi onunla tanımladığı bir kişisel websitesidir. Profilinizde bu websitesinin bağlantısını verdiğinizde, websitesinizin profilinize bağlantı verip vermediğini denetleyip üzerinde görsel bir işaret koyacağız."
     instructions_html: Aşağıdaki kodu kopyalayın ve websitenizin HTML'sine yapıştırın. Daha sonra "Profil Düzenle" sekmesini kullanarak profilinizdeki ek sahalardan birine websitenizin adresini ekleyin ve değişiklikleri kaydedin.
     verification: Doğrulama
     verified_links: Doğrulanmış bağlantılarınız
@@ -1966,3 +2129,12 @@ tr:
     not_supported: Bu tarayıcı güvenlik anahtarlarını desteklemiyor
     otp_required: Güvenlik anahtarlarını kullanmak için lütfen önce iki adımlı kimlik doğrulamayı etkinleştirin.
     registered_on: "%{date} tarihinde kaydoldu"
+  scheduled_posts:
+    title: "Planlanmış Gönderiler"
+    empty: "Henüz planlanmış gönderi yok"
+    description: "Planlanmış gönderilerinizi burada görebilirsiniz"
+  status:
+    quote: Alıntıla
+    reblog: Yeniden paylaş
+    scheduled_for: "Scheduled for {date}"
+    scheduled_for_tr: "{date} tarihinde paylaşılacak"

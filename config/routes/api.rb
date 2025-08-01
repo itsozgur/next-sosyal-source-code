@@ -25,14 +25,22 @@ namespace :api, format: false do
         resource :pin, only: :create
         post :unpin, to: 'pins#destroy'
 
+        resource :quote, only: :create
+        post :unquote, to: 'quotes#destroy'
+
         resource :history, only: :show
         resource :source, only: :show
+
+        resources :views, only: :create
 
         post :translate, to: 'translations#create'
       end
 
       member do
         get :context
+        get :quotes
+        get :quoters
+        get :comments
       end
     end
 
@@ -173,6 +181,7 @@ namespace :api, format: false do
       patch :update_credentials, to: 'credentials#update'
       resource :search, only: :show, controller: :search
       resource :lookup, only: :show, controller: :lookup
+      resource :proxy_info, only: :show, controller: :proxy_info
       resources :relationships, only: :index
       resources :familiar_followers, only: :index
     end
@@ -300,6 +309,14 @@ namespace :api, format: false do
       end
 
       resources :tags, only: [:index, :show, :update]
+
+      # Badge yönetimi (moderatör)
+      resources :badges, only: [:index] do
+        collection do
+          post 'assign/:account_id/:badge_id', to: 'badges#assign', as: 'assign'
+          delete 'remove/:account_id/:badge_id', to: 'badges#remove', as: 'remove'
+        end
+      end
     end
   end
 

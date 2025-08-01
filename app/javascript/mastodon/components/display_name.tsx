@@ -82,18 +82,38 @@ export class DisplayName extends React.PureComponent<Props> {
       if (!acct.includes('@') && localDomain) {
         acct = `${acct}@${localDomain}`;
       }
+      const badges = account.get('badges')?.toJS() || [];
+      const rankOneBadges = badges.filter((badge: any) => badge.rank === 1);
 
       displayName = (
-        <bdi>
-          <strong
-            className='display-name__html'
-            dangerouslySetInnerHTML={{
-              __html: account.get('display_name_html'),
-            }}
-          />
-        </bdi>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <bdi>
+            <strong
+              className='display-name__html'
+              dangerouslySetInnerHTML={{
+                __html: account.get('display_name_html'),
+              }}
+            />
+          </bdi>
+          {rankOneBadges.map((badge: any, index: number) => (
+            <img
+              key={index}
+              src={badge.icon}
+              alt={badge.name}
+              title={badge.name}
+              style={{
+                width: '16px',
+                height: '16px',
+                objectFit: 'contain',
+                marginLeft: '4px',
+              }}
+            />
+          ))}
+        </span>
       );
-      suffix = <span className='display-name__account'>@{acct}</span>;
+      suffix = (
+        <span className='display-name__account'>@{acct.split('@')[0]}</span>
+      );
     } else {
       displayName = (
         <bdi>

@@ -61,25 +61,11 @@ export default class ColumnsArea extends ImmutablePureComponent {
     children: PropTypes.node,
   };
 
-  // Corresponds to (max-width: $no-gap-breakpoint - 1px) in SCSS
   mediaQuery = 'matchMedia' in window && window.matchMedia('(max-width: 1174px)');
 
   state = {
     renderComposePanel: !(this.mediaQuery && this.mediaQuery.matches),
   };
-
-  componentDidMount() {
-    if (this.mediaQuery) {
-      if (this.mediaQuery.addEventListener) {
-        this.mediaQuery.addEventListener('change', this.handleLayoutChange);
-      } else {
-        this.mediaQuery.addListener(this.handleLayoutChange);
-      }
-      this.setState({ renderComposePanel: !this.mediaQuery.matches });
-    }
-
-    this.isRtlLayout = document.getElementsByTagName('body')[0].classList.contains('rtl');
-  }
 
   componentWillUnmount () {
     if (this.mediaQuery) {
@@ -121,20 +107,22 @@ export default class ColumnsArea extends ImmutablePureComponent {
     if (singleColumn) {
       return (
         <div className='columns-area__panels'>
-          <div className='columns-area__panels__pane columns-area__panels__pane--compositional'>
-            <div className='columns-area__panels__pane__inner'>
-              {renderComposePanel && <ComposePanel />}
-            </div>
-          </div>
-
-          <div className='columns-area__panels__main'>
-            <div className='tabs-bar__wrapper'><TabsBarPortal /></div>
-            <div className='columns-area columns-area--mobile'>{children}</div>
-          </div>
-
           <div className='columns-area__panels__pane columns-area__panels__pane--start columns-area__panels__pane--navigational'>
             <div className='columns-area__panels__pane__inner'>
               <NavigationPanel />
+            </div>
+          </div>
+
+          <div className='columns-area__panels__main' id='posting-guide'>
+            <div className='tabs-bar__wrapper'>
+              <TabsBarPortal />
+            </div>
+            <div className='columns-area columns-area--mobile'>{children}</div>
+          </div>
+
+          <div className='columns-area__panels__pane columns-area__panels__pane--compositional'>
+            <div className='columns-area__panels__pane__inner'>
+              {renderComposePanel && <ComposePanel />}
             </div>
           </div>
         </div>
@@ -143,6 +131,35 @@ export default class ColumnsArea extends ImmutablePureComponent {
 
     return (
       <div className={`columns-area ${ isModalOpen ? 'unscrollable' : '' }`} ref={this.setRef}>
+        <div className='tabs-bar__wrapper' id='posting-guide'>
+          <TabsBarPortal />
+          <button
+            onClick={this.initializePostingGuide}
+            className='button button--block'
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              padding: '8px 16px',
+              backgroundColor: 'var(--brand-color)',
+              color: 'var(--primary-text-color)',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              zIndex: 1000,
+              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>🎯</span>
+            <span>Rehberi Başlat</span>
+          </button>
+        </div>
         {columns.map(column => {
           const params = column.get('params', null) === null ? null : column.get('params').toJS();
           const other  = params && params.other ? params.other : {};

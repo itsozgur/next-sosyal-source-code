@@ -81,6 +81,7 @@ Doorkeeper.configure do
                   :'write:bookmarks',
                   :'write:conversations',
                   :'write:favourites',
+                  :'write:quotes',
                   :'write:filters',
                   :'write:follows',
                   :'write:lists',

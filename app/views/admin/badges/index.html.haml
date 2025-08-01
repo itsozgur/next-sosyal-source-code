@@ -1,0 +1,73 @@
+- content_for :page_title do
+  = t('admin.badges.title')
+
+.badges-page{ 'data-i18n-add': t('admin.badges.add'),
+              'data-i18n-remove': t('admin.badges.remove'),
+              'data-i18n-adding': t('admin.badges.adding'),
+              'data-i18n-removing': t('admin.badges.removing'),
+              'data-i18n-added': t('admin.badges.added'),
+              'data-i18n-removed': t('admin.badges.removed'),
+              'data-i18n-already-exists': t('admin.badges.already_exists'),
+              'data-i18n-not-found': t('admin.badges.not_found'),
+              'data-i18n-error': t('admin.badges.error'),
+              'data-i18n-badge-added-success': t('admin.badges.badge_added_success'),
+              'data-i18n-badge-removed-success': t('admin.badges.badge_removed_success'),
+              'data-i18n-badge-already-assigned': t('admin.badges.badge_already_assigned'),
+              'data-i18n-badge-not-found': t('admin.badges.badge_not_found'),
+              'data-i18n-error-adding': t('admin.badges.error_adding'),
+              'data-i18n-error-removing': t('admin.badges.error_removing'),
+              'data-i18n-select-user-and-badge': t('admin.badges.select_user_and_badge'),
+              'data-i18n-user-not-found': t('admin.badges.user_not_found'),
+              'data-i18n-badge-not-found-text': t('admin.badges.badge_not_found_text'),
+              'data-i18n-search-error': t('admin.badges.search_error'),
+              'data-i18n-loading': t('admin.badges.loading'),
+              'data-i18n-load-more': t('admin.badges.load_more'),
+              'data-i18n-select': t('admin.badges.select') }
+  #notification-banner
+
+  .page-header
+    %h1.page-title
+      = material_symbol('star')
+      #{t('admin.badges.title')}
+    %p.page-description= t('admin.badges.description')
+
+  .badges-content
+    // Rozet Atama Bölümü
+    .section-card.assign-section
+      .card-header
+        %h2.section-title
+          = material_symbol('person_add')
+          #{t('admin.badges.assign_badge')}
+        %p.section-subtitle= t('admin.badges.search_users_subtitle')
+
+      .card-body
+        = form_with url: '#', method: :post, local: false, class: 'badge_form', id: 'badge-assign-form' do |form|
+          .form-row
+            .form-column.user-column
+              = form.label :user_id, t('admin.badges.user'), class: 'field-label'
+              .user-select-container
+                %input#user-search{ type: 'text', placeholder: t('admin.badges.search_and_select_user'), autocomplete: 'off', class: 'form-select user-search-input', readonly: true, tabindex: '-1' }
+                %input{ type: 'hidden', name: 'user_id', id: 'user-id-hidden', required: true }
+
+                #user-dropdown.search-dropdown{ style: 'display: none;' }
+                  .dropdown-search
+                    %input#dropdown-search{ type: 'text', placeholder: t('admin.badges.search_users'), class: 'dropdown-search-input' }
+                  .dropdown-content
+                    .loading-indicator 
+                      %span= t('admin.badges.loading')
+                    .users-list
+                    .load-more-container{ style: 'display: none;' }
+                      %button.load-more-btn{ type: 'button' }= t('admin.badges.load_more')
+
+            .form-column.badge-column
+              = form.label :badge_id, t('admin.badges.badge_label'), class: 'field-label'
+              %select#badge-select{ name: 'badge_id', class: 'form-select', required: true }
+                %option{ value: '', disabled: true, selected: true }= t('admin.badges.select_badge')
+
+          .form-footer
+
+            .submit-container
+              %button#btn-remove.btn-remove{ type: 'button', disabled: true }
+                🗑️ #{t('admin.badges.remove')}
+              %button#btn-add.btn-add{ type: 'button', disabled: true }
+                ➕ #{t('admin.badges.add')} 

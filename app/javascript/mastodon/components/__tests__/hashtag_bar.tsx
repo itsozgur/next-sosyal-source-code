@@ -208,7 +208,7 @@ describe('computeHashtagBarForStatus', () => {
 
     expect(hashtagsInBar).toEqual([]);
     expect(statusContentProps.statusContent).toMatchInlineSnapshot(
-      `"<p><a href="test">#test</a>  <a href="test">#hashtag</a></p>"`,
+      `"<p><a href="test" data-testid="hashtag_bar-show-a">#test</a>  <a href="test" data-testid="hashtag_bar-show-a">#hashtag</a></p>"`,
     );
   });
 });

@@ -27,6 +27,10 @@ Rails.application.configure do
     end
   end
 
+  config.x.cdn_url = ENV.fetch('CDN_URL')
+  config.x.auth_url = ENV.fetch('AUTH_URL')
+  config.x.auth_cdn_url = ENV.fetch('AUTH_CDN_URL')
+
   unless Rails.env.test?
     config.hosts << host if host.present?
     config.hosts << web_host if web_host.present?

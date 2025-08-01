@@ -33,7 +33,7 @@ function isNodeLinkHashtag(element: Node): element is HTMLLinkElement {
     element instanceof HTMLAnchorElement &&
     // it may be a <a> starting with a hashtag
     (element.textContent?.[0] === '#' ||
-      // or a #<a>
+      // or a #<a data-testid="hashtag_bar-show-a">
       element.previousSibling?.textContent?.[
         element.previousSibling.textContent.length - 1
       ] === '#')

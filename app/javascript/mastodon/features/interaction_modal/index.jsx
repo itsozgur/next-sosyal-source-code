@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { useState, useEffect } from 'react';
 
 import { FormattedMessage, defineMessages, injectIntl } from 'react-intl';
 
@@ -16,16 +17,23 @@ import StarIcon from '@/material-icons/400-24px/star.svg?react';
 import { openModal, closeModal } from 'mastodon/actions/modal';
 import api from 'mastodon/api';
 import { Button } from 'mastodon/components/button';
-import { Icon }  from 'mastodon/components/icon';
+import { Icon } from 'mastodon/components/icon';
 import { registrationsOpen, sso_redirect } from 'mastodon/initial_state';
 
 const messages = defineMessages({
   loginPrompt: { id: 'interaction_modal.login.prompt', defaultMessage: 'Domain of your home server, e.g. mastodon.social' },
 });
+const [signupUrl, setSignupUrl] = useState("");
+useEffect(() => {
+  const envSignupUrl = process.env.REACT_APP_SIGNUP_URL;
+  if (envSignupUrl) {
+    setSignupUrl(envSignupUrl);
+  }
+}, []);
 
 const mapStateToProps = (state, { accountId }) => ({
   displayNameHtml: state.getIn(['accounts', accountId, 'display_name_html']),
-  signupUrl: state.getIn(['server', 'server', 'registrations', 'url'], null) || '/auth/sign_up',
+  signupUrl: signupUrl,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -383,13 +391,13 @@ class InteractionModal extends React.PureComponent {
 
     if (sso_redirect) {
       signupButton = (
-        <a href={sso_redirect} data-method='post' className='link-button'>
+        <a href={sso_redirect} data-method='post' className='link-button' data-testid="index-show-a">
           <FormattedMessage id='sign_in_banner.create_account' defaultMessage='Create account' />
         </a>
       );
     } else if (registrationsOpen) {
       signupButton = (
-        <a href={signupUrl} className='link-button'>
+        <a href={signupUrl} className='link-button' data-testid="index-show-a">
           <FormattedMessage id='sign_in_banner.create_account' defaultMessage='Create account' />
         </a>
       );

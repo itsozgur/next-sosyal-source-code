@@ -41,7 +41,7 @@ class ComposePanel extends PureComponent {
     const { signedIn } = this.props.identity;
 
     return (
-      <div className='compose-panel' onFocus={this.onFocus}>
+      <div className='compose-panel' onFocus={this.onFocus} id='posting-guide'>
         <SearchContainer openInRoute />
 
         {!signedIn && (

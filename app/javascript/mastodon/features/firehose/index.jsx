@@ -4,13 +4,11 @@ import { useRef, useCallback, useEffect } from 'react';
 import { useIntl, defineMessages, FormattedMessage } from 'react-intl';
 
 import { Helmet } from 'react-helmet';
-import { NavLink } from 'react-router-dom';
 
 import { useIdentity } from '@/mastodon/identity_context';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import { addColumn } from 'mastodon/actions/columns';
 import { changeSetting } from 'mastodon/actions/settings';
-import { connectPublicStream, connectCommunityStream } from 'mastodon/actions/streaming';
 import { expandPublicTimeline, expandCommunityTimeline } from 'mastodon/actions/timelines';
 import { DismissableBanner } from 'mastodon/components/dismissable_banner';
 import { domain } from 'mastodon/initial_state';
@@ -95,30 +93,40 @@ const Firehose = ({ feedType, multiColumn }) => {
   const handleHeaderClick = useCallback(() => columnRef.current?.scrollTop(), []);
 
   useEffect(() => {
-    let disconnect;
+    let refreshInterval;
 
+    // İlk yükleme
     switch(feedType) {
     case 'community':
       dispatch(expandCommunityTimeline({ onlyMedia }));
-      if (signedIn) {
-        disconnect = dispatch(connectCommunityStream({ onlyMedia }));
-      }
       break;
     case 'public':
       dispatch(expandPublicTimeline({ onlyMedia }));
-      if (signedIn) {
-        disconnect = dispatch(connectPublicStream({ onlyMedia }));
-      }
       break;
     case 'public:remote':
       dispatch(expandPublicTimeline({ onlyMedia, onlyRemote: true }));
-      if (signedIn) {
-        disconnect = dispatch(connectPublicStream({ onlyMedia, onlyRemote: true }));
-      }
       break;
     }
 
-    return () => disconnect?.();
+    refreshInterval = setInterval(() => {
+      switch(feedType) {
+      case 'community':
+        dispatch(expandCommunityTimeline({ onlyMedia }));
+        break;
+      case 'public':
+        dispatch(expandPublicTimeline({ onlyMedia }));
+        break;
+      case 'public:remote':
+        dispatch(expandPublicTimeline({ onlyMedia, onlyRemote: true }));
+        break;
+      }
+    }, 60000); 
+
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
   }, [dispatch, signedIn, feedType, onlyMedia]);
 
   const prependBanner = feedType === 'community' ? (
@@ -164,7 +172,8 @@ const Firehose = ({ feedType, multiColumn }) => {
       >
         <ColumnSettings />
       </ColumnHeader>
-
+      {/* Tab'ları kaldırıldı - varsayılan olarak yerel sunucu gösteriliyor */}
+      {/*
       <div className='account__section-headline'>
         <NavLink exact to='/public/local'>
           <FormattedMessage tagName='div' id='firehose.local' defaultMessage='This server' />
@@ -178,6 +187,7 @@ const Firehose = ({ feedType, multiColumn }) => {
           <FormattedMessage tagName='div' id='firehose.all' defaultMessage='All' />
         </NavLink>
       </div>
+      */}
 
       <StatusListContainer
         prepend={prependBanner}

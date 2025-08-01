@@ -4,17 +4,20 @@ $black: #000000;
 $classic-base-color: hsl(240deg, 16%, 19%);
 $classic-primary-color: hsl(240deg, 29%, 70%);
 $classic-secondary-color: hsl(255deg, 25%, 88%);
-$classic-highlight-color: hsl(240deg, 100%, 69%);
+$classic-highlight-color: hsl(233deg, 100%, 75%); 
+$classic-highlight-color-2: hsl(231deg, 100%, 60%);
 
 $ui-base-color: $classic-base-color !default;
 $ui-primary-color: $classic-primary-color !default;
 $ui-secondary-color: $classic-secondary-color !default;
 $ui-highlight-color: $classic-highlight-color !default;
+$ui-highlight-color-2: $classic-highlight-color-2 !default;
 
 $darker-text-color: lighten($ui-primary-color, 20%) !default;
 $dark-text-color: lighten($ui-primary-color, 12%) !default;
 $secondary-text-color: lighten($ui-secondary-color, 6%) !default;
 $highlight-text-color: lighten($ui-highlight-color, 10%) !default;
+$highlight-text-color-2: lighten($ui-highlight-color-2, 10%) !default;
 $action-button-color: lighten($ui-base-color, 50%);
 
 $inverted-text-color: $black !default;

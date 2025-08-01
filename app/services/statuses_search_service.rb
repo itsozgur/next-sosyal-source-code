@@ -3,11 +3,11 @@
 class StatusesSearchService < BaseService
   def call(query, account = nil, options = {})
     MastodonOTELTracer.in_span('StatusesSearchService#call') do |span|
-      @query   = query&.strip
+      @query = query&.strip
       @account = account
       @options = options
-      @limit   = options[:limit].to_i
-      @offset  = options[:offset].to_i
+      @limit = options[:limit].to_i
+      @offset = options[:offset].to_i
       convert_deprecated_options!
 
       span.add_attributes(
@@ -25,10 +25,23 @@ class StatusesSearchService < BaseService
   private
 
   def status_search_results
-    request             = parsed_query.request
-    results             = request.collapse(field: :id).order(id: { order: :desc }).limit(@limit).offset(@offset).objects.compact
-    account_ids         = results.map(&:account_id)
-    account_domains     = results.map(&:account_domain)
+    request = parsed_query.request
+    results = request.collapse(field: :id)
+                     .order(_score: { order: :desc })
+                     .order(created_at: { order: :desc })
+                     .order(id: { order: :desc })
+                     .limit(@limit).offset(@offset)
+                     .objects.compact
+    es_body =
+      if request.respond_to?(:render)
+        request.render
+      else
+        request.send(:render)
+      end
+
+    Rails.logger.info("[ES_DEBUG_FINAL] #{es_body.to_json}")
+    account_ids = results.map(&:account_id)
+    account_domains = results.map(&:account_domain)
     preloaded_relations = @account.relations_map(account_ids, account_domains)
 
     results.reject { |status| StatusFilter.new(status, @account, preloaded_relations).filtered? }

@@ -55,6 +55,7 @@ require_relative '../lib/active_record/batches'
 require_relative '../lib/active_record/with_recursive'
 require_relative '../lib/arel/union_parenthesizing'
 require_relative '../lib/simple_navigation/item_extensions'
+require_relative '../lib/error_logging_middleware'
 
 Bundler.require(:pam_authentication) if ENV['PAM_ENABLED'] == 'true'
 
@@ -95,6 +96,7 @@ module Mastodon
     config.middleware.use PublicFileServerMiddleware if Rails.env.local? || ENV['RAILS_SERVE_STATIC_FILES'] == 'true'
     config.middleware.use Rack::Attack
     config.middleware.use Mastodon::RackMiddleware
+    config.middleware.insert_after ActionDispatch::DebugExceptions, ErrorLoggingMiddleware
 
     initializer :deprecator do |app|
       app.deprecators[:mastodon] = ActiveSupport::Deprecation.new('4.3', 'mastodon/mastodon')

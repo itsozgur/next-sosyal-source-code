@@ -19,7 +19,6 @@ import VisibilityOffIcon from '@/material-icons/400-24px/visibility_off.svg?reac
 import { Icon }  from 'mastodon/components/icon';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import { TimelineHint } from 'mastodon/components/timeline_hint';
-import ScrollContainer from 'mastodon/containers/scroll_container';
 import BundleColumnError from 'mastodon/features/ui/components/bundle_column_error';
 import { identityContextPropShape, withIdentity } from 'mastodon/identity_context';
 import { WithRouterPropTypes } from 'mastodon/utils/react_router';
@@ -51,6 +50,8 @@ import { initMuteModal } from '../../actions/mutes';
 import { initReport } from '../../actions/reports';
 import {
   fetchStatus,
+  fetchComments,
+  expandComments,
   muteStatus,
   unmuteStatus,
   deleteStatus,
@@ -61,10 +62,11 @@ import {
   undoStatusTranslation,
 } from '../../actions/statuses';
 import ColumnHeader from '../../components/column_header';
+import ScrollableList from '../../components/scrollable_list';
 import { textForScreenReader, defaultMediaVisibility } from '../../components/status';
 import StatusContainer from '../../containers/status_container';
 import { deleteModal } from '../../initial_state';
-import { makeGetStatus, makeGetPictureInPicture } from '../../selectors';
+import { makeGetStatus, makeGetPictureInPicture, makeGetCommentPagination } from '../../selectors';
 import Column from '../ui/components/column';
 import { attachFullscreenListener, detachFullscreenListener, isFullscreen } from '../ui/util/fullscreen';
 
@@ -82,6 +84,7 @@ const messages = defineMessages({
 const makeMapStateToProps = () => {
   const getStatus = makeGetStatus();
   const getPictureInPicture = makeGetPictureInPicture();
+  const getCommentPagination = makeGetCommentPagination();
 
   const getAncestorsIds = createSelector([
     (_, { id }) => id,
@@ -101,44 +104,13 @@ const makeMapStateToProps = () => {
   });
 
   const getDescendantsIds = createSelector([
-    (_, { id }) => id,
-    state => state.getIn(['contexts', 'replies']),
-    state => state.get('statuses'),
-  ], (statusId, contextReplies, statuses) => {
-    let descendantsIds = [];
-    const ids = [statusId];
-
-    while (ids.length > 0) {
-      let id        = ids.pop();
-      const replies = contextReplies.get(id);
-
-      if (statusId !== id) {
-        descendantsIds.push(id);
-      }
-
-      if (replies) {
-        replies.reverse().forEach(reply => {
-          if (!ids.includes(reply) && !descendantsIds.includes(reply) && statusId !== reply) ids.push(reply);
-        });
-      }
-    }
-
-    let insertAt = descendantsIds.findIndex((id) => statuses.get(id).get('in_reply_to_account_id') !== statuses.get(id).get('account'));
-    if (insertAt !== -1) {
-      descendantsIds.forEach((id, idx) => {
-        if (idx > insertAt && statuses.get(id).get('in_reply_to_account_id') === statuses.get(id).get('account')) {
-          descendantsIds.splice(idx, 1);
-          descendantsIds.splice(insertAt, 0, id);
-          insertAt += 1;
-        }
-      });
-    }
-
-    return Immutable.List(descendantsIds);
+    (state, { id }) => state.getIn(['comment_pagination', id, 'items'], Immutable.List()),
+  ], (commentIds) => {
+    return commentIds;
   });
 
   const mapStateToProps = (state, props) => {
-    const status = getStatus(state, { id: props.params.statusId });
+    const status = getStatus(state, { id: props.params.statusId, contextType: 'detailed' });
 
     let ancestorsIds   = Immutable.List();
     let descendantsIds = Immutable.List();
@@ -153,6 +125,7 @@ const makeMapStateToProps = () => {
       status,
       ancestorsIds,
       descendantsIds,
+      commentPagination: getCommentPagination(state, { statusId: props.params.statusId }),
       askReplyConfirmation: state.getIn(['compose', 'text']).trim().length !== 0,
       domain: state.getIn(['meta', 'domain']),
       pictureInPicture: getPictureInPicture(state, { id: props.params.statusId }),
@@ -190,6 +163,7 @@ class Status extends ImmutablePureComponent {
     isLoading: PropTypes.bool,
     ancestorsIds: ImmutablePropTypes.list.isRequired,
     descendantsIds: ImmutablePropTypes.list.isRequired,
+    commentPagination: ImmutablePropTypes.map,
     intl: PropTypes.object.isRequired,
     askReplyConfirmation: PropTypes.bool,
     multiColumn: PropTypes.bool,
@@ -208,7 +182,8 @@ class Status extends ImmutablePureComponent {
   };
 
   UNSAFE_componentWillMount () {
-    this.props.dispatch(fetchStatus(this.props.params.statusId));
+    this.props.dispatch(fetchStatus(this.props.params.statusId, false, false));
+    this.props.dispatch(fetchComments(this.props.params.statusId, { limit: 10 }));
   }
 
   componentDidMount () {
@@ -219,7 +194,8 @@ class Status extends ImmutablePureComponent {
 
   UNSAFE_componentWillReceiveProps (nextProps) {
     if (nextProps.params.statusId !== this.props.params.statusId && nextProps.params.statusId) {
-      this.props.dispatch(fetchStatus(nextProps.params.statusId));
+      this.props.dispatch(fetchStatus(nextProps.params.statusId, false, false));
+      this.props.dispatch(fetchComments(nextProps.params.statusId, { limit: 10 }));
     }
 
     if (nextProps.status && nextProps.status.get('id') !== this.state.loadedStatusId) {
@@ -229,6 +205,25 @@ class Status extends ImmutablePureComponent {
 
   handleToggleMediaVisibility = () => {
     this.setState({ showMedia: !this.state.showMedia });
+  };
+
+  handleLoadMoreComments = () => {
+    const { dispatch, params, commentPagination, descendantsIds } = this.props;
+    
+    
+    if (commentPagination && !commentPagination.get('isExpanding') && commentPagination.get('hasMore')) {
+
+      const lastCommentId = descendantsIds && descendantsIds.size > 0 ? descendantsIds.last() : null;
+
+      
+      if (lastCommentId) {
+    
+        dispatch(expandComments(params.statusId, { 
+          limit: 10, 
+          since_id: lastCommentId 
+        }));
+      }
+    }
   };
 
   handleFavouriteClick = (status) => {
@@ -599,9 +594,8 @@ class Status extends ImmutablePureComponent {
   };
 
   render () {
-    let ancestors, descendants, remoteHint;
+    let ancestors, remoteHint;
     const { isLoading, status, ancestorsIds, descendantsIds, intl, domain, multiColumn, pictureInPicture } = this.props;
-    const { fullscreen } = this.state;
 
     if (isLoading) {
       return (
@@ -621,17 +615,13 @@ class Status extends ImmutablePureComponent {
       ancestors = <>{this.renderChildren(ancestorsIds, true)}</>;
     }
 
-    if (descendantsIds && descendantsIds.size > 0) {
-      descendants = <>{this.renderChildren(descendantsIds)}</>;
-    }
-
     const isLocal = status.getIn(['account', 'acct'], '').indexOf('@') === -1;
     const isIndexable = !status.getIn(['account', 'noindex']);
 
     if (!isLocal) {
       remoteHint = (
         <TimelineHint
-          className={classNames(!!descendants && 'timeline-hint--with-descendants')}
+          className={classNames(descendantsIds && descendantsIds.size > 0 && 'timeline-hint--with-descendants')}
           url={status.get('url')}
           message={<FormattedMessage id='hints.threads.replies_may_be_missing' defaultMessage='Replies from other servers may be missing.' />}
           label={<FormattedMessage id='hints.threads.see_more' defaultMessage='See more replies on {domain}' values={{ domain: <strong>{status.getIn(['account', 'acct']).split('@')[1]}</strong> }} />}
@@ -662,54 +652,63 @@ class Status extends ImmutablePureComponent {
           )}
         />
 
-        <ScrollContainer scrollKey='thread' shouldUpdateScroll={this.shouldUpdateScroll}>
-          <div className={classNames('scrollable', { fullscreen })} ref={this.setContainerRef}>
-            {ancestors}
+        <ScrollableList
+          scrollKey='thread'
+          onLoadMore={this.handleLoadMoreComments}
+          hasMore={this.props.commentPagination ? this.props.commentPagination.get('hasMore') : false}
+          isLoading={this.props.commentPagination ? this.props.commentPagination.get('isExpanding') : false}
+          trackScroll
+          bindToDocument={!multiColumn}
+          prepend={
+            <>
+              {ancestors}
+              <HotKeys handlers={handlers}>
+                <div className={classNames('focusable', 'detailed-status__wrapper', `detailed-status__wrapper-${status.get('visibility')}`)} tabIndex={0} aria-label={textForScreenReader(intl, status, false)} ref={this.setStatusRef}>
+                  <DetailedStatus
+                    key={`details-${status.get('id')}`}
+                    status={status}
+                    onOpenVideo={this.handleOpenVideo}
+                    onOpenMedia={this.handleOpenMedia}
+                    onToggleHidden={this.handleToggleHidden}
+                    onTranslate={this.handleTranslate}
+                    domain={domain}
+                    showMedia={this.state.showMedia}
+                    onToggleMediaVisibility={this.handleToggleMediaVisibility}
+                    pictureInPicture={pictureInPicture}
+                  />
 
-            <HotKeys handlers={handlers}>
-              <div className={classNames('focusable', 'detailed-status__wrapper', `detailed-status__wrapper-${status.get('visibility')}`)} tabIndex={0} aria-label={textForScreenReader(intl, status, false)} ref={this.setStatusRef}>
-                <DetailedStatus
-                  key={`details-${status.get('id')}`}
-                  status={status}
-                  onOpenVideo={this.handleOpenVideo}
-                  onOpenMedia={this.handleOpenMedia}
-                  onToggleHidden={this.handleToggleHidden}
-                  onTranslate={this.handleTranslate}
-                  domain={domain}
-                  showMedia={this.state.showMedia}
-                  onToggleMediaVisibility={this.handleToggleMediaVisibility}
-                  pictureInPicture={pictureInPicture}
-                />
-
-                <ActionBar
-                  key={`action-bar-${status.get('id')}`}
-                  status={status}
-                  onReply={this.handleReplyClick}
-                  onFavourite={this.handleFavouriteClick}
-                  onReblog={this.handleReblogClick}
-                  onBookmark={this.handleBookmarkClick}
-                  onDelete={this.handleDeleteClick}
-                  onEdit={this.handleEditClick}
-                  onDirect={this.handleDirectClick}
-                  onMention={this.handleMentionClick}
-                  onMute={this.handleMuteClick}
-                  onUnmute={this.handleUnmuteClick}
-                  onMuteConversation={this.handleConversationMuteClick}
-                  onBlock={this.handleBlockClick}
-                  onUnblock={this.handleUnblockClick}
-                  onBlockDomain={this.handleBlockDomainClick}
-                  onUnblockDomain={this.handleUnblockDomainClick}
-                  onReport={this.handleReport}
-                  onPin={this.handlePin}
-                  onEmbed={this.handleEmbed}
-                />
-              </div>
-            </HotKeys>
-
-            {descendants}
-            {remoteHint}
-          </div>
-        </ScrollContainer>
+                  <ActionBar
+                    key={`action-bar-${status.get('id')}`}
+                    status={status}
+                    dispatch={this.props.dispatch}
+                    onReply={this.handleReplyClick}
+                    onFavourite={this.handleFavouriteClick}
+                    onReblog={this.handleReblogClick}
+                    onBookmark={this.handleBookmarkClick}
+                    onDelete={this.handleDeleteClick}
+                    onEdit={this.handleEditClick}
+                    onDirect={this.handleDirectClick}
+                    onMention={this.handleMentionClick}
+                    onMute={this.handleMuteClick}
+                    onUnmute={this.handleUnmuteClick}
+                    onMuteConversation={this.handleConversationMuteClick}
+                    onBlock={this.handleBlockClick}
+                    onUnblock={this.handleUnblockClick}
+                    onBlockDomain={this.handleBlockDomainClick}
+                    onUnblockDomain={this.handleUnblockDomainClick}
+                    onReport={this.handleReport}
+                    onPin={this.handlePin}
+                    onEmbed={this.handleEmbed}
+                  />
+                </div>
+              </HotKeys>
+            </>
+          }
+          append={remoteHint}
+          alwaysPrepend
+        >
+          {descendantsIds && descendantsIds.size > 0 ? this.renderChildren(descendantsIds) : null}
+        </ScrollableList>
 
         <Helmet>
           <title>{titleFromStatus(intl, status)}</title>

@@ -77,7 +77,7 @@ export const ModerationWarning: React.FC<Props> = ({
           target='_blank'
           rel='noopener noreferrer'
           className='link-button'
-        >
+        data-testid="moderation_warning-show-a">
           <FormattedMessage
             id='notification.moderation-warning.learn_more'
             defaultMessage='Learn more'

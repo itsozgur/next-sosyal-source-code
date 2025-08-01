@@ -10,11 +10,11 @@ import ImmutablePureComponent from 'react-immutable-pure-component';
 import { connect } from 'react-redux';
 
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
-import BookmarksIcon from '@/material-icons/400-24px/bookmarks-fill.svg?react';
+import BookmarksIcon from '@/material-icons/400-24px/bookmarks.svg?react';
 import ExploreIcon from '@/material-icons/400-24px/explore.svg?react';
 import ModerationIcon from '@/material-icons/400-24px/gavel.svg?react';
 import PeopleIcon from '@/material-icons/400-24px/group.svg?react';
-import HomeIcon from '@/material-icons/400-24px/home-fill.svg?react';
+import HomeIcon from '@/material-icons/400-24px/home.svg?react';
 import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
 import AdministrationIcon from '@/material-icons/400-24px/manufacturing.svg?react';
 import MenuIcon from '@/material-icons/400-24px/menu.svg?react';

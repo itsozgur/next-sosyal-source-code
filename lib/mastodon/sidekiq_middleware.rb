@@ -3,8 +3,24 @@
 class Mastodon::SidekiqMiddleware
   BACKTRACE_LIMIT = 3
 
-  def call(*, &block)
-    Chewy.strategy(:mastodon, &block)
+  def call(worker, job, queue)
+    log_context = {
+      request_id: job['jid'],
+      controller: worker.class.name,
+      action: 'perform',
+      params: job['args'],
+      user_id: (worker.respond_to?(:user_id) ? worker.user_id : nil),
+      user_email: (worker.respond_to?(:user_email) ? worker.user_email : nil),
+      source: 'sidekiq',
+      queue: queue,
+      tags: ["sidekiq", "queue:#{queue}"]
+    }
+  
+    Thread.current[:log_context] = log_context
+  
+    Chewy.strategy(:mastodon) do
+      yield
+    end
   rescue Mastodon::HostValidationError
     # Do not retry
   rescue => e
@@ -12,6 +28,7 @@ class Mastodon::SidekiqMiddleware
     limit_backtrace_and_raise(e)
   ensure
     clean_up_sockets!
+    Thread.current[:log_context] = nil
   end
 
   private
@@ -26,24 +43,10 @@ class Mastodon::SidekiqMiddleware
     clean_up_statsd_socket!
   end
 
-  # This is a hack to immediately free up unused Elasticsearch connections.
-  #
-  # Indeed, Chewy creates one `Elasticsearch::Client` instance per thread,
-  # and each such client manages its long-lasting connection to
-  # Elasticsearch.
-  #
-  # As far as I know, neither `chewy`,  `elasticsearch-transport` or even
-  # `faraday` provide a reliable way to immediately close a connection, and
-  # rely on the underlying object to be garbage-collected instead.
-  #
-  # Furthermore, `sidekiq` creates a new thread each time a job throws an
-  # exception, meaning that each failure will create a new connection, and
-  # the old one will only be closed on full garbage collection.
   def clean_up_elasticsearch_connections!
     return unless Chewy.enabled? && Chewy.current[:chewy_client].present?
 
     Chewy.client.transport.transport.connections.each do |connection|
-      # NOTE: This bit of code is tailored for the HTTPClient Faraday adapter
       connection.connection.app.instance_variable_get(:@client)&.reset_all
     end
 

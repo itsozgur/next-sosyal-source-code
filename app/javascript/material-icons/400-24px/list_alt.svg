@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M320-280q17 0 28.5-11.5T360-320q0-17-11.5-28.5T320-360q-17 0-28.5 11.5T280-320q0 17 11.5 28.5T320-280Zm0-160q17 0 28.5-11.5T360-480q0-17-11.5-28.5T320-520q-17 0-28.5 11.5T280-480q0 17 11.5 28.5T320-440Zm0-160q17 0 28.5-11.5T360-640q0-17-11.5-28.5T320-680q-17 0-28.5 11.5T280-640q0 17 11.5 28.5T320-600Zm120 320h240v-80H440v80Zm0-160h240v-80H440v80Zm0-160h240v-80H440v80ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/></svg>
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path class="no-fill" d="M17.5972 6.80737C19.5532 6.81826 20.6125 6.905 21.3035 7.59601C22.0937 8.38621 22.0937 9.65803 22.0937 12.2016V17.5975C22.0937 20.1411 22.0937 21.4129 21.3035 22.2031C20.5133 22.9933 19.2415 22.9933 16.6979 22.9933H11.3021C8.75846 22.9933 7.48665 22.9933 6.69645 22.2031C5.90625 21.4129 5.90625 20.1411 5.90625 17.5975V12.2016C5.90625 9.65803 5.90625 8.38621 6.69645 7.59601C7.38746 6.905 8.44676 6.81826 10.4028 6.80737" stroke="currentColor" stroke-width="1.75"/>
+<path class="no-fill" d="M12.651 15.7983H18.4965" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+<path class="no-fill" d="M9.50342 15.7983H9.95307" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+<path class="no-fill" d="M9.50342 12.6511H9.95307" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+<path class="no-fill" d="M9.50342 18.9463H9.95307" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+<path class="no-fill" d="M12.651 12.6511H18.4965" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+<path class="no-fill" d="M12.651 18.9463H18.4965" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+<path class="no-fill" d="M10.4028 6.35579C10.4028 5.61078 11.0068 5.00684 11.7518 5.00684H16.2483C16.9933 5.00684 17.5973 5.61078 17.5973 6.35579V7.2551C17.5973 8.00011 16.9933 8.60406 16.2483 8.60406H11.7518C11.0068 8.60406 10.4028 8.00011 10.4028 7.2551V6.35579Z" stroke="currentColor" stroke-width="1.75"/>
+</svg>

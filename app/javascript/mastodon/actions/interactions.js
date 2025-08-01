@@ -3,7 +3,7 @@ import { boostModal } from 'mastodon/initial_state';
 import api, { getLinks } from '../api';
 
 import { fetchRelationships } from './accounts';
-import { importFetchedAccounts, importFetchedStatus } from './importer';
+import { importFetchedAccounts, importFetchedStatus, importFetchedStatuses } from './importer';
 import { unreblog, reblog } from './interactions_typed';
 import { openModal } from './modal';
 
@@ -30,6 +30,22 @@ export const FAVOURITES_FETCH_FAIL    = 'FAVOURITES_FETCH_FAIL';
 export const FAVOURITES_EXPAND_REQUEST = 'FAVOURITES_EXPAND_REQUEST';
 export const FAVOURITES_EXPAND_SUCCESS = 'FAVOURITES_EXPAND_SUCCESS';
 export const FAVOURITES_EXPAND_FAIL = 'FAVOURITES_EXPAND_FAIL';
+
+export const QUOTERS_FETCH_REQUEST = 'QUOTERS_FETCH_REQUEST';
+export const QUOTERS_FETCH_SUCCESS = 'QUOTERS_FETCH_SUCCESS';
+export const QUOTERS_FETCH_FAIL = 'QUOTERS_FETCH_FAIL';
+
+export const QUOTERS_EXPAND_REQUEST = 'QUOTERS_EXPAND_REQUEST';
+export const QUOTERS_EXPAND_SUCCESS = 'QUOTERS_EXPAND_SUCCESS';
+export const QUOTERS_EXPAND_FAIL = 'QUOTERS_EXPAND_FAIL';
+
+export const QUOTES_FETCH_REQUEST = 'QUOTES_FETCH_REQUEST';
+export const QUOTES_FETCH_SUCCESS = 'QUOTES_FETCH_SUCCESS';
+export const QUOTES_FETCH_FAIL = 'QUOTES_FETCH_FAIL';
+
+export const QUOTES_EXPAND_REQUEST = 'QUOTES_EXPAND_REQUEST';
+export const QUOTES_EXPAND_SUCCESS = 'QUOTES_EXPAND_SUCCESS';
+export const QUOTES_EXPAND_FAIL = 'QUOTES_EXPAND_FAIL';
 
 export const PIN_REQUEST = 'PIN_REQUEST';
 export const PIN_SUCCESS = 'PIN_SUCCESS';
@@ -480,5 +496,167 @@ export function toggleFavourite(statusId) {
     } else {
       dispatch(favourite(status));
     }
+  };
+}
+
+export function fetchQuoters(id) {
+  return (dispatch) => {
+    dispatch(fetchQuotersRequest(id));
+
+    api().get(`/api/v1/statuses/${id}/quoters`).then(response => {
+      const next = getLinks(response).refs.find(link => link.rel === 'next');
+      dispatch(importFetchedAccounts(response.data));
+      dispatch(fetchQuotersSuccess(id, response.data, next ? next.uri : null));
+      dispatch(fetchRelationships(response.data.map(item => item.id)));
+    }).catch(error => {
+      dispatch(fetchQuotersFail(id, error));
+    });
+  };
+}
+
+export function fetchQuotersRequest(id) {
+  return {
+    type: QUOTERS_FETCH_REQUEST,
+    id,
+  };
+}
+
+export function fetchQuotersSuccess(id, accounts, next) {
+  return {
+    type: QUOTERS_FETCH_SUCCESS,
+    id,
+    accounts,
+    next,
+  };
+}
+
+export function fetchQuotersFail(id, error) {
+  return {
+    type: QUOTERS_FETCH_FAIL,
+    id,
+    error,
+  };
+}
+
+export function expandQuoters(id) {
+  return (dispatch, getState) => {
+    const url = getState().getIn(['user_lists', 'quoted_by', id, 'next']);
+    if (url === null) {
+      return;
+    }
+
+    dispatch(expandQuotersRequest(id));
+
+    api().get(url).then(response => {
+      const next = getLinks(response).refs.find(link => link.rel === 'next');
+
+      dispatch(importFetchedAccounts(response.data));
+      dispatch(expandQuotersSuccess(id, response.data, next ? next.uri : null));
+      dispatch(fetchRelationships(response.data.map(item => item.id)));
+    }).catch(error => dispatch(expandQuotersFail(id, error)));
+  };
+}
+
+export function expandQuotersRequest(id) {
+  return {
+    type: QUOTERS_EXPAND_REQUEST,
+    id,
+  };
+}
+
+export function expandQuotersSuccess(id, accounts, next) {
+  return {
+    type: QUOTERS_EXPAND_SUCCESS,
+    id,
+    accounts,
+    next,
+  };
+}
+
+export function expandQuotersFail(id, error) {
+  return {
+    type: QUOTERS_EXPAND_FAIL,
+    id,
+    error,
+  };
+}
+
+export function fetchQuotes(id) {
+  return (dispatch) => {
+    dispatch(fetchQuotesRequest(id));
+
+    api().get(`/api/v1/statuses/${id}/quotes`).then(response => {
+      const next = getLinks(response).refs.find(link => link.rel === 'next');
+      dispatch(importFetchedStatuses(response.data));
+      dispatch(fetchQuotesSuccess(id, response.data, next ? next.uri : null));
+    }).catch(error => {
+      dispatch(fetchQuotesFail(id, error));
+    });
+  };
+}
+
+export function fetchQuotesRequest(id) {
+  return {
+    type: QUOTES_FETCH_REQUEST,
+    id,
+  };
+}
+
+export function fetchQuotesSuccess(id, statuses, next) {
+  return {
+    type: QUOTES_FETCH_SUCCESS,
+    id,
+    statuses,
+    next,
+  };
+}
+
+export function fetchQuotesFail(id, error) {
+  return {
+    type: QUOTES_FETCH_FAIL,
+    id,
+    error,
+  };
+}
+
+export function expandQuotes(id) {
+  return (dispatch, getState) => {
+    const url = getState().getIn(['status_lists', 'quotes', id, 'next']);
+    if (url === null) {
+      return;
+    }
+
+    dispatch(expandQuotesRequest(id));
+
+    api().get(url).then(response => {
+      const next = getLinks(response).refs.find(link => link.rel === 'next');
+
+      dispatch(importFetchedStatuses(response.data));
+      dispatch(expandQuotesSuccess(id, response.data, next ? next.uri : null));
+    }).catch(error => dispatch(expandQuotesFail(id, error)));
+  };
+}
+
+export function expandQuotesRequest(id) {
+  return {
+    type: QUOTES_EXPAND_REQUEST,
+    id,
+  };
+}
+
+export function expandQuotesSuccess(id, statuses, next) {
+  return {
+    type: QUOTES_EXPAND_SUCCESS,
+    id,
+    statuses,
+    next,
+  };
+}
+
+export function expandQuotesFail(id, error) {
+  return {
+    type: QUOTES_EXPAND_FAIL,
+    id,
+    error,
   };
 }

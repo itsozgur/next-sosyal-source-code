@@ -11,8 +11,10 @@ import { tagHistory } from 'mastodon/settings';
 import { showAlert, showAlertForError } from './alerts';
 import { useEmoji } from './emojis';
 import { importFetchedAccounts, importFetchedStatus } from './importer';
-import { openModal } from './modal';
-import { updateTimeline } from './timelines';
+import { openModal, closeModal } from './modal';
+import { TIMELINE_UPDATE, TIMELINE_CONNECT, TIMELINE_DELETE , updateTimeline } from './timelines';
+
+export const STATUS_UPDATE = 'STATUS_UPDATE';
 
 /** @type {AbortController | undefined} */
 let fetchComposeSuggestionsAccountsController;
@@ -25,7 +27,7 @@ export const COMPOSE_SUBMIT_SUCCESS  = 'COMPOSE_SUBMIT_SUCCESS';
 export const COMPOSE_SUBMIT_FAIL     = 'COMPOSE_SUBMIT_FAIL';
 export const COMPOSE_REPLY           = 'COMPOSE_REPLY';
 export const COMPOSE_REPLY_CANCEL    = 'COMPOSE_REPLY_CANCEL';
-export const COMPOSE_DIRECT          = 'COMPOSE_DIRECT';
+export const COMPOSE_DIRECT          = 'COMPOSE_DIRECT';        
 export const COMPOSE_MENTION         = 'COMPOSE_MENTION';
 export const COMPOSE_RESET           = 'COMPOSE_RESET';
 
@@ -61,6 +63,20 @@ export const COMPOSE_LANGUAGE_CHANGE     = 'COMPOSE_LANGUAGE_CHANGE';
 
 export const COMPOSE_EMOJI_INSERT = 'COMPOSE_EMOJI_INSERT';
 
+export const COMPOSE_SCHEDULED_POST_ADD_REQUEST = 'COMPOSE_SCHEDULED_POST_ADD_REQUEST';
+export const COMPOSE_SCHEDULED_POST_ADD_SUCCESS = 'COMPOSE_SCHEDULED_POST_ADD_SUCCESS';
+export const COMPOSE_SCHEDULED_POST_ADD_FAIL    = 'COMPOSE_SCHEDULED_POST_ADD_FAIL';
+
+export const COMPOSE_SCHEDULED_POST_GET_REQUEST = 'COMPOSE_SCHEDULED_POST_GET_REQUEST';
+export const COMPOSE_SCHEDULED_POST_GET_SUCCESS = 'COMPOSE_SCHEDULED_POST_GET_SUCCESS';
+export const COMPOSE_SCHEDULED_POST_GET_FAIL    = 'COMPOSE_SCHEDULED_POST_GET_FAIL';
+
+export const COMPOSE_SCHEDULED_POST_CHANGE = 'COMPOSE_SCHEDULED_POST_CHANGE';
+
+export const COMPOSE_SCHEDULED_POST_DELETE_REQUEST = 'COMPOSE_SCHEDULED_POST_DELETE_REQUEST';
+export const COMPOSE_SCHEDULED_POST_DELETE_SUCCESS = 'COMPOSE_SCHEDULED_POST_DELETE_SUCCESS';
+export const COMPOSE_SCHEDULED_POST_DELETE_FAIL = 'COMPOSE_SCHEDULED_POST_DELETE_FAIL';
+
 export const COMPOSE_UPLOAD_CHANGE_REQUEST     = 'COMPOSE_UPLOAD_UPDATE_REQUEST';
 export const COMPOSE_UPLOAD_CHANGE_SUCCESS     = 'COMPOSE_UPLOAD_UPDATE_SUCCESS';
 export const COMPOSE_UPLOAD_CHANGE_FAIL        = 'COMPOSE_UPLOAD_UPDATE_FAIL';
@@ -79,7 +95,11 @@ export const COMPOSE_CHANGE_MEDIA_FOCUS       = 'COMPOSE_CHANGE_MEDIA_FOCUS';
 export const COMPOSE_CHANGE_MEDIA_ORDER       = 'COMPOSE_CHANGE_MEDIA_ORDER';
 
 export const COMPOSE_SET_STATUS = 'COMPOSE_SET_STATUS';
+export const COMPOSE_QUOTE = 'COMPOSE_QUOTE';
 export const COMPOSE_FOCUS = 'COMPOSE_FOCUS';
+
+export const COMPOSE_SCHEDULE_DATETIME_CHANGE = 'COMPOSE_SCHEDULE_DATETIME_CHANGE';
+export const COMPOSE_SCHEDULE_INPUT_SHOW = 'COMPOSE_SCHEDULE_INPUT_SHOW';
 
 const messages = defineMessages({
   uploadErrorLimit: { id: 'upload_error.limit', defaultMessage: 'File upload limit exceeded.' },
@@ -87,6 +107,8 @@ const messages = defineMessages({
   open: { id: 'compose.published.open', defaultMessage: 'Open' },
   published: { id: 'compose.published.body', defaultMessage: 'Post published.' },
   saved: { id: 'compose.saved.body', defaultMessage: 'Post saved.' },
+  scheduled: { id: 'compose.scheduled.body', defaultMessage: 'Gönderi paylaşımı planlandı.' },
+  unexpectedError: { id: 'compose.unexpected_error', defaultMessage: 'An unexpected error occurred.' },
 });
 
 export const ensureComposeIsVisible = (getState) => {
@@ -183,11 +205,299 @@ export function directCompose(account) {
   };
 }
 
+export function quoteCompose(status) {
+  return (dispatch, getState) => {
+    
+    const statusUrl = status.get('url');
+    const currentText = getState().getIn(['compose', 'text'], '');
+    
+    const quoteText = currentText.length > 0 
+      ? `${currentText}\n\n${statusUrl}` 
+      : `\n\n${statusUrl}`;
+    
+    dispatch({
+      type: COMPOSE_CHANGE,
+      text: quoteText,
+      caretPosition: 0,
+    });
+
+    dispatch({
+      type: COMPOSE_QUOTE,
+      status: status,
+    });
+
+    ensureComposeIsVisible(getState);
+  };
+}
+
+export function clearQuote() {
+  return {
+    type: COMPOSE_QUOTE,
+    status: null,
+  };
+}
+
+export function scheduledPostRequest() {
+  return {
+    type: COMPOSE_SCHEDULED_POST_ADD_REQUEST,
+  };
+}
+
+export function scheduledPostSuccess() {
+  return {
+    type: COMPOSE_SCHEDULED_POST_ADD_SUCCESS,
+  };
+}
+
+export function scheduledPostFail(error) {
+  return {
+    type: COMPOSE_SCHEDULED_POST_ADD_FAIL,
+    error,
+  };
+}
+
+export function scheduledPost(scheduledAt) {
+  return function (dispatch, getState) {
+    if (!getState().getIn(['compose', 'text']).trim() && !getState().getIn(['compose', 'media_attachments']).size) {
+      return Promise.reject();
+    }
+
+    dispatch(scheduledPostRequest());
+
+    return api(getState).post('/api/v1/statuses', {
+      status: getState().getIn(['compose', 'text']),
+      scheduled_at: scheduledAt,
+      in_reply_to_id: getState().getIn(['compose', 'in_reply_to']),
+      media_ids: getState().getIn(['compose', 'media_attachments']).map(item => item.get('id')),
+      sensitive: getState().getIn(['compose', 'sensitive']),
+      spoiler_text: getState().getIn(['compose', 'spoiler_text']),
+      visibility: getState().getIn(['compose', 'privacy']),
+      poll: getState().getIn(['compose', 'poll']),
+      language: getState().getIn(['compose', 'language']),
+      quoted_status_id: getState().getIn(['compose', 'quote_status']) ? getState().getIn(['compose', 'quote_status', 'id']) : null,
+    }).then(response => {
+      dispatch(scheduledPostSuccess());
+      dispatch(showAlert({ message: messages.scheduled }));
+      
+      // Note: quotes_count will be automatically incremented by the backend when the scheduled post is published
+      
+      return response;
+    }).catch(error => {
+      dispatch(scheduledPostFail(error));
+      if (error.response) {
+        dispatch(showAlert({ message: error.response.data.error }));
+      } else {
+        dispatch(showAlert({ message: error.message || 'An unknown error occurred' }));
+      }
+      throw error;
+    });
+  };
+}
+
+export function updateScheduledPost(id) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const status = state.getIn(['compose', 'text']);
+    const media_attachments = state.getIn(['compose', 'media_attachments']);
+    const scheduled_at = state.getIn(['compose', 'schedule']);
+    const sensitive = state.getIn(['compose', 'sensitive']);
+    const spoiler_text = state.getIn(['compose', 'spoiler_text']);
+    const visibility = state.getIn(['compose', 'privacy']);
+    const language = state.getIn(['compose', 'language']);
+    const poll = state.getIn(['compose', 'poll']);
+
+    const params = {
+      status,
+      scheduled_at,
+      sensitive,
+      spoiler_text,
+      visibility,
+      language,
+      poll,
+      media_ids: media_attachments.map(item => item.get('id')),
+    };
+
+    return api(getState).put(`/api/v1/scheduled_statuses/${id}`, params)
+      .then(response => {
+        dispatch({
+          type: STATUS_UPDATE,
+          status: response.data,
+        });
+        dispatch(resetCompose());
+        dispatch(closeModal());
+        dispatch(showAlert({ message: messages.saved }));
+      })
+      .catch(error => {
+        dispatch(changeUploadComposeFail(id, error));
+        dispatch(showAlert({ 
+          message: error.response?.data?.error || messages.unexpectedError.defaultMessage,
+          dismissAfter: 5000,
+        }));
+      });
+  };
+}
+
+export function getScheduledPostRequest() {
+  return {
+    type: COMPOSE_SCHEDULED_POST_GET_REQUEST,
+  };
+}
+
+export function getScheduledPostSuccess(data) {
+  return {
+    type: COMPOSE_SCHEDULED_POST_GET_SUCCESS,
+    data,
+  };
+}
+
+export function getScheduledPostFail(error) {
+  return {
+    type: COMPOSE_SCHEDULED_POST_GET_FAIL,
+    error,
+  };
+}
+
+export function getScheduledPost() {
+  return (dispatch, getState) => {
+    dispatch(getScheduledPostRequest());
+
+    dispatch({
+      type: TIMELINE_CONNECT,
+      timeline: 'scheduled_posts',
+      usePendingItems: false,
+    });
+
+    return api(getState).get('/api/v1/scheduled_statuses').then(response => {
+      const me = getState().getIn(['meta', 'me']);
+      const account = getState().getIn(['accounts', me]);
+      
+      const statuses = response.data.map(status => ({
+        id: status.id,
+        created_at: status.scheduled_at,
+        scheduled_at: status.scheduled_at,
+        in_reply_to_id: status.params.in_reply_to_id || null,
+        in_reply_to_account_id: null,
+        sensitive: status.params.sensitive || false,
+        spoiler_text: status.params.spoiler_text || '',
+        visibility: status.params.visibility || 'public',
+        language: status.params.language || 'tr',
+        uri: `scheduled_statuses/${status.id}`,
+        url: `scheduled_statuses/${status.id}`,
+        content: status.params.text || '', 
+        reblog: null,
+        replies_count: 0,
+        reblogs_count: 0,
+        favourites_count: 0,
+        favourited: false,
+        reblogged: false,
+        muted: false,
+        bookmarked: false,
+        pinned: false,
+        media_attachments: status.media_attachments || [],
+        mentions: status.params.mentions || [],
+        tags: status.params.tags || [],
+        card: null,
+        poll: status.params.poll || null,
+        account: {  // Hesap bilgileri
+          id: account.get('id'),
+          username: account.get('username'),
+          acct: account.get('acct'),
+          display_name: account.get('display_name') || account.get('username'),
+          avatar: account.get('avatar'),
+          avatar_static: account.get('avatar_static'),
+          header: account.get('header'),
+          header_static: account.get('header_static'),
+          locked: account.get('locked', false),
+          emojis: account.get('emojis', []).toJS(),
+          bot: account.get('bot', false),
+          group: account.get('group', false),
+          discoverable: account.get('discoverable', false),
+          created_at: account.get('created_at'),
+          note: account.get('note', ''),
+          url: account.get('url'),
+          fields: account.get('fields', []).toJS(),
+          followers_count: account.get('followers_count', 0),
+          following_count: account.get('following_count', 0),
+          statuses_count: account.get('statuses_count', 0),
+        },
+        emojis: [],
+        filtered: false,
+      }));
+
+      statuses.forEach(status => {
+        dispatch(importFetchedStatus(status));
+        
+        dispatch({
+          type: TIMELINE_UPDATE,
+          timeline: 'scheduled_posts',
+          status: status,
+          usePendingItems: false,
+        });
+      });
+
+      dispatch(getScheduledPostSuccess(response.data));
+    }).catch(error => {
+      dispatch(getScheduledPostFail(error));
+      if (error.response) {
+        dispatch(showAlert({ message: error.response.data.error }));
+      } else {
+        dispatch(showAlert({ message: error.message || 'An unknown error occurred' }));
+      }
+    });
+  };
+}
+
+export function deleteScheduledPostRequest() {
+  return {
+    type: COMPOSE_SCHEDULED_POST_DELETE_REQUEST,
+  };
+}
+
+export function deleteScheduledPostSuccess() {
+  return {
+    type: COMPOSE_SCHEDULED_POST_DELETE_SUCCESS,
+  };
+}
+
+export function deleteScheduledPostFail(error) {
+  return {
+    type: COMPOSE_SCHEDULED_POST_DELETE_FAIL,
+    error,
+  };
+}
+
+export function deleteScheduledPost(id) {
+  return (dispatch, getState) => {
+    dispatch(deleteScheduledPostRequest());
+
+    return api(getState).delete(`/api/v1/scheduled_statuses/${id}`).then(() => {
+      dispatch(deleteScheduledPostSuccess());
+      dispatch(showAlert({ message: 'Scheduled post deleted successfully' }));
+      
+      dispatch({
+        type: TIMELINE_DELETE,
+        timeline: 'scheduled_posts',
+        statusId: id,
+      });
+    }).catch(error => {
+      dispatch(deleteScheduledPostFail(error));
+      if (error.response) {
+        dispatch(showAlert({ message: error.response.data.error }));
+      } else {
+        dispatch(showAlert({ message: error.message || 'An unknown error occurred' }));
+      }
+    });
+  };
+}
+
 export function submitCompose() {
   return function (dispatch, getState) {
     const status   = getState().getIn(['compose', 'text'], '');
     const media    = getState().getIn(['compose', 'media_attachments']);
     const statusId = getState().getIn(['compose', 'id'], null);
+
+    // Capture quote status before it gets cleared
+    const quotedStatus = getState().getIn(['compose', 'quote_status']);
 
     if ((!status || !status.length) && media.size === 0) {
       return;
@@ -228,17 +538,21 @@ export function submitCompose() {
         visibility: getState().getIn(['compose', 'privacy']),
         poll: getState().getIn(['compose', 'poll'], null),
         language: getState().getIn(['compose', 'language']),
+        quoted_status_id: quotedStatus ? quotedStatus.get('id') : null,
       },
       headers: {
         'Idempotency-Key': getState().getIn(['compose', 'idempotencyKey']),
       },
     }).then(function (response) {
-      if ((browserHistory.location.pathname === '/publish' || browserHistory.location.pathname === '/statuses/new') && window.history.state) {
+      if (browserHistory.location.pathname === '/publish' || browserHistory.location.pathname === '/statuses/new') {
         browserHistory.goBack();
       }
 
+      dispatch(resetCompose());
       dispatch(insertIntoTagHistory(response.data.tags, status));
       dispatch(submitComposeSuccess({ ...response.data }));
+
+      // Note: quotes_count is automatically incremented by the backend when quoted_status_id is provided
 
       // To make the app more responsive, immediately push the status
       // into the columns
@@ -258,18 +572,14 @@ export function submitCompose() {
         insertIfOnline('home');
       }
 
-      if (statusId === null && response.data.in_reply_to_id === null && response.data.visibility === 'public') {
+      if (response.data.in_reply_to_id === null && response.data.visibility === 'public') {
         insertIfOnline('community');
         insertIfOnline('public');
-        insertIfOnline(`account:${response.data.account.id}`);
       }
 
-      dispatch(showAlert({
-        message: statusId === null ? messages.published : messages.saved,
-        action: messages.open,
-        dismissAfter: 10000,
-        onClick: () => browserHistory.push(`/@${response.data.account.username}/${response.data.id}`),
-      }));
+      if (response.data.visibility === 'direct') {
+        insertIfOnline('direct');
+      }
     }).catch(function (error) {
       dispatch(submitComposeFail(error));
     });
@@ -834,4 +1144,14 @@ export const changeMediaOrder = (a, b) => ({
   type: COMPOSE_CHANGE_MEDIA_ORDER,
   a,
   b,
+});
+
+export const changeScheduleDateTime = (value) => ({
+  type: COMPOSE_SCHEDULE_DATETIME_CHANGE,
+  value,
+});
+
+export const showScheduleInput = (value) => ({
+  type: COMPOSE_SCHEDULE_INPUT_SHOW,
+  value,
 });

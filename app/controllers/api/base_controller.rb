@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Api::BaseController < ApplicationController
-  DEFAULT_STATUSES_LIMIT = 20
-  DEFAULT_ACCOUNTS_LIMIT = 40
+  DEFAULT_STATUSES_LIMIT = 10
+  DEFAULT_ACCOUNTS_LIMIT = 20
 
   include Api::RateLimitHeaders
   include Api::AccessTokenTrackingConcern
@@ -70,6 +70,13 @@ class Api::BaseController < ApplicationController
     else
       update_user_sign_in
     end
+  end
+
+  # Redefine `require_functional!` to properly output JSON instead of HTML redirects
+  def require_functional!
+    return if current_user.functional?
+
+    require_user!
   end
 
   def render_empty

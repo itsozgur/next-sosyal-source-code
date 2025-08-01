@@ -10,8 +10,8 @@ class TagsIndex < Chewy::Index
         filter: %w(
           word_delimiter_graph
           lowercase
-          asciifolding
-          cjk_width
+          icu_normalizer
+          icu_folding
         ),
       },
 
@@ -19,8 +19,8 @@ class TagsIndex < Chewy::Index
         tokenizer: 'edge_ngram',
         filter: %w(
           lowercase
-          asciifolding
-          cjk_width
+          icu_normalizer
+          icu_folding
         ),
       },
     },

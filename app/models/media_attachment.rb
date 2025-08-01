@@ -39,12 +39,12 @@ class MediaAttachment < ApplicationRecord
 
   MAX_DESCRIPTION_LENGTH = 1_500
 
-  IMAGE_LIMIT = 16.megabytes
-  VIDEO_LIMIT = 99.megabytes
+  IMAGE_LIMIT = 30.megabytes
+  VIDEO_LIMIT = 1024.megabytes
 
-  MAX_VIDEO_MATRIX_LIMIT = 8_294_400 # 3840x2160px
-  MAX_VIDEO_FRAME_RATE   = 120
-  MAX_VIDEO_FRAMES       = 36_000 # Approx. 5 minutes at 120 fps
+  MAX_VIDEO_MATRIX_LIMIT = 2_073_600 # 3840x2160px
+  MAX_VIDEO_FRAME_RATE   = 30
+  MAX_VIDEO_FRAMES       = 18_000 # Approx. 5 minutes at 60 fps
 
   IMAGE_FILE_EXTENSIONS = %w(.jpg .jpeg .png .gif .webp .heic .heif .avif).freeze
   VIDEO_FILE_EXTENSIONS = %w(.webm .mp4 .m4v .mov).freeze
@@ -420,8 +420,10 @@ class MediaAttachment < ApplicationRecord
 
     @paths_to_cache_bust = MediaAttachment.attachment_definitions.keys.flat_map do |attachment_name|
       attachment = public_send(attachment_name)
+      next if attachment.blank?
+
       styles = DEFAULT_STYLES | attachment.styles.keys
-      styles.map { |style| attachment.path(style) }
+      styles.map { |style| attachment.url(style) }
     end.compact
   rescue => e
     # We really don't want any error here preventing media deletion

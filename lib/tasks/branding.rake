@@ -23,7 +23,7 @@ namespace :branding do
     rsvg_convert.run(input: Rails.root.join('app', 'javascript', 'images', 'logo-symbol-wordmark.svg'), size: 102, output: output_dest.join('wordmark.png'))
 
     # Displayed size is 24px, at 3x it's 72px
-    rsvg_convert.run(input: Rails.root.join('app', 'javascript', 'images', 'logo-symbol-icon.svg'), size: 72, output: output_dest.join('logo.png'))
+    rsvg_convert.run(input: Rails.root.join('app', 'javascript', 'images', 'logo-symbol-icon.svg'), size: 72, output: output_dest.join('logo-light.svg'))
   end
 
   desc 'Generate light/dark logotypes for GitHub'
@@ -37,15 +37,15 @@ namespace :branding do
 
   desc 'Generate favicons and app icons from SVG source files'
   task generate_app_icons: :environment do
-    favicon_source  = Rails.root.join('app', 'javascript', 'images', 'logo.svg')
+    favicon_source  = Rails.root.join('app', 'javascript', 'images', 'logo-light.svg')
     app_icon_source = Rails.root.join('app', 'javascript', 'images', 'app-icon.svg')
     output_dest     = Rails.root.join('app', 'javascript', 'icons')
 
     rsvg_convert = Terrapin::CommandLine.new('rsvg-convert', '-w :size -h :size --keep-aspect-ratio :input -o :output')
 
     favicon_sizes      = [16, 32, 48]
-    apple_icon_sizes   = [57, 60, 72, 76, 114, 120, 144, 152, 167, 180, 1024]
-    android_icon_sizes = [36, 48, 72, 96, 144, 192, 256, 384, 512]
+    apple_icon_sizes   = [57, 60, 72, 76, 114, 120, 144, 152, 167]
+    android_icon_sizes = [36, 48, 72, 96, 144, 192, 256, 384]
 
     favicons = []
 

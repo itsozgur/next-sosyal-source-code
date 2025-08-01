@@ -32,6 +32,31 @@ RSpec.describe 'statuses/show.html.haml' do
       .and match(/<meta content="player" property="twitter:card">/)
   end
 
+  it 'has twitter-specific meta tags for better content preview' do
+    render
+
+    expect(header_tags)
+      .to match(/<meta content="@example\.com" property="twitter:site">/)
+      .and match(/<meta content="@alice" property="twitter:creator">/)
+      .and match(/<meta content="Alice \(@alice\)" property="twitter:title">/)
+      .and match(/<meta content=".+" property="twitter:description">/)
+  end
+
+  context 'with image attachment and text' do
+    let(:status) { Fabricate(:status, account: alice, text: 'Hello World with image!') }
+
+    before do
+      Fabricate(:media_attachment, account: alice, status: status, type: :image)
+    end
+
+    it 'uses summary_large_image card for posts with text and images' do
+      render
+
+      expect(header_tags)
+        .to match(/<meta content="summary_large_image" property="twitter:card">/)
+    end
+  end
+
   def header_tags
     view.content_for(:header_tags)
   end

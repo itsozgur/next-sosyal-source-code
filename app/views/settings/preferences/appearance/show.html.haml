@@ -50,7 +50,8 @@
       = ff.input :'web.use_pending_items',
                  hint: I18n.t('simple_form.hints.defaults.setting_use_pending_items'),
                  label: I18n.t('simple_form.labels.defaults.setting_use_pending_items'),
-                 wrapper: :with_label
+                 wrapper: :with_label,
+                 input_html: { checked: true }
 
     .fields-group
       = ff.input :'web.auto_play', wrapper: :with_label, recommended: true, label: I18n.t('simple_form.labels.defaults.setting_auto_play_gif')

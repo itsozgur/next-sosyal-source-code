@@ -7,17 +7,14 @@ import { FormattedMessage } from 'react-intl';
 
 import classNames from 'classnames';
 
-
 import Immutable from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import DescriptionIcon from '@/material-icons/400-24px/description-fill.svg?react';
-import OpenInNewIcon from '@/material-icons/400-24px/open_in_new.svg?react';
 import PlayArrowIcon from '@/material-icons/400-24px/play_arrow-fill.svg?react';
 import { Blurhash } from 'mastodon/components/blurhash';
 import { Icon }  from 'mastodon/components/icon';
 import { MoreFromAuthor } from 'mastodon/components/more_from_author';
-import { RelativeTimestamp } from 'mastodon/components/relative_timestamp';
 import { useBlurhash } from 'mastodon/initial_state';
 
 const IDNA_PREFIX = 'xn--';
@@ -33,6 +30,22 @@ const getHostname = url => {
   const parser = document.createElement('a');
   parser.href = url;
   return parser.hostname;
+};
+
+const isYouTubeLiveStream = url => {
+  try {
+    const urlLower = url.toLowerCase();
+    
+    // YouTube.com/live/ pattern'ı - kesin canlı yayın
+    if (urlLower.includes('youtube.com/live/')) {
+      return true;
+    }
+    
+    // Diğer durumlar normal video
+    return false;
+  } catch (e) {
+    return false;
+  }
 };
 
 const domParser = new DOMParser();
@@ -134,7 +147,29 @@ export default class Card extends PureComponent {
       return null;
     }
 
-    const provider    = card.get('provider_name').length === 0 ? decodeIDNA(getHostname(card.get('url'))) : card.get('provider_name');
+    const isYouTube = card.get('url').includes('youtube.com') || card.get('url').includes('youtu.be');
+    
+    if (isYouTube) {
+      const isLiveStream = isYouTubeLiveStream(card.get('url'));
+    
+      
+      if (isLiveStream && card.get('html')) {
+        const content = { __html: addAutoPlay(card.get('html')) };
+        
+        return (
+          <div className='status-card status-card--live-stream' ref={this.setRef}>
+            <div
+              className='status-card__image status-card-video'
+              dangerouslySetInnerHTML={content}
+              style={{ aspectRatio: '16 / 9' }}
+            />
+          </div>
+        );
+      }
+      
+    }
+
+    const domain      = decodeIDNA(getHostname(card.get('url')));
     const interactive = card.get('type') === 'video';
     const language    = card.get('language') || '';
     const largeImage  = (card.get('image')?.length > 0 && card.get('width') > card.get('height')) || interactive;
@@ -142,14 +177,21 @@ export default class Card extends PureComponent {
 
     const description = (
       <div className='status-card__content' dir='auto'>
-        <span className='status-card__host'>
-          <span lang={language}>{provider}</span>
-          {card.get('published_at') && <> · <RelativeTimestamp timestamp={card.get('published_at')} /></>}
+        <span className='status-card__host' lang={language}>
+          {domain.replace(/^www\./, '')}
         </span>
-
-        <strong className='status-card__title' title={card.get('title')} lang={language}>{card.get('title')}</strong>
-
-        {!showAuthor && (card.get('author_name').length > 0 ? <span className='status-card__author'><FormattedMessage id='link_preview.author' defaultMessage='By {name}' values={{ name: <strong>{card.get('author_name')}</strong> }} /></span> : <span className='status-card__description' lang={language}>{card.get('description')}</span>)}
+        
+        {card.get('title') && (
+          <strong className='status-card__title' title={card.get('title')} lang={language}>
+            {card.get('title')}
+          </strong>
+        )}
+        
+        {card.get('description') && (
+          <span className='status-card__description' title={card.get('description')} lang={language}>
+            {card.get('description')}
+          </span>
+        )}
       </div>
     );
 
@@ -208,7 +250,7 @@ export default class Card extends PureComponent {
               <div className='status-card__actions' onClick={this.handleEmbedClick} role='none'>
                 <div>
                   <button type='button' onClick={this.handleEmbedClick}><Icon id='play' icon={PlayArrowIcon} /></button>
-                  <a href={card.get('url')} onClick={this.handleExternalLinkClick} target='_blank' rel='noopener noreferrer'><Icon id='external-link' icon={OpenInNewIcon} /></a>
+        
                 </div>
               </div>
             ) : spoilerButton}
@@ -239,7 +281,7 @@ export default class Card extends PureComponent {
 
     return (
       <>
-        <a href={card.get('url')} className={classNames('status-card', { expanded: largeImage, bottomless: showAuthor })} target='_blank' rel='noopener noreferrer' ref={this.setRef}>
+        <a href={card.get('url')} className={classNames('status-card', { expanded: largeImage, bottomless: showAuthor })} target='_blank' rel='noopener noreferrer' ref={this.setRef} data-testid="card-show-a">
           {embed}
           {description}
         </a>

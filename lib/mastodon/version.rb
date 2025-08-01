@@ -13,7 +13,7 @@ module Mastodon
     end
 
     def patch
-      3
+      8
     end
 
     def default_prerelease
@@ -71,7 +71,7 @@ module Mastodon
     end
 
     def user_agent
-      @user_agent ||= "Mastodon/#{Version} (#{HTTP::Request::USER_AGENT}; +http#{Rails.configuration.x.use_https ? 's' : ''}://#{Rails.configuration.x.web_domain}/)"
+      @user_agent ||= "Next-Sosyal/#{Version} (#{HTTP::Request::USER_AGENT}; +http#{Rails.configuration.x.use_https ? 's' : ''}://#{Rails.configuration.x.web_domain}/)"
     end
   end
 end

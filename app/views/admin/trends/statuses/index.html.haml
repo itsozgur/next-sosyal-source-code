@@ -17,6 +17,32 @@
                       options_for_select(@locales.map { |key| [standard_locale_name(key), key] }, params[:locale]),
                       { include_blank: true },
                       { disabled: @locales.empty? }
+    
+    .filter-subset.filter-subset--with-select
+      %strong Konu Arama
+      = form_with url: admin_trends_statuses_path, method: :get, class: :simple_form, local: true do |content_form|
+        - Trends::StatusFilter::KEYS.reject { |k| k == :user_query }.each do |key|
+          = content_form.hidden_field key, value: params[key] if params[key].present?
+        .input.text_field.optional
+          .search-input-wrapper
+            = content_form.text_field :content_query, 
+                              value: params[:content_query],
+                              placeholder: "Konu ara...",
+                              class: 'form-control search-input'
+            = content_form.submit "Ara", class: 'btn btn-primary btn-sm search-btn', name: nil
+
+    .filter-subset.filter-subset--with-select
+      %strong Kullanıcı Arama
+      = form_with url: admin_trends_statuses_path, method: :get, class: :simple_form, local: true do |user_form|
+        - Trends::StatusFilter::KEYS.reject { |k| k == :content_query }.each do |key|
+          = user_form.hidden_field key, value: params[key] if params[key].present?
+        .input.text_field.optional
+          .search-input-wrapper
+            = user_form.text_field :user_query,
+                              value: params[:user_query], 
+                              placeholder: "Kullanıcı ara...",
+                              class: 'form-control search-input'
+            = user_form.submit "Ara", class: 'btn btn-primary btn-sm search-btn', name: nil                  
     .filter-subset
       %strong= t('admin.trends.trending')
       %ul

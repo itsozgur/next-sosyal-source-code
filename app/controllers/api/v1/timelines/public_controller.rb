@@ -13,6 +13,13 @@ class Api::V1::Timelines::PublicController < Api::V1::Timelines::BaseController
 
   private
 
+  def disallow_unauthenticated_api_access?
+    base = ENV['DISALLOW_UNAUTHENTICATED_API_ACCESS'] == 'true' || Rails.configuration.x.limited_federation_mode
+    if base && ENV['PUBLIC_TIMELINE_ACCESS'] == 'true'
+      return false
+    end
+    base
+  end
   def load_statuses
     preloaded_public_statuses_page
   end

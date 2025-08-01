@@ -2,7 +2,7 @@ import './public-path';
 import { createRoot } from 'react-dom/client';
 
 import Rails from '@rails/ujs';
-
+import { initializeAdminBadges } from '../mastodon/admin_badges';
 import ready from '../mastodon/ready';
 
 const setAnnouncementEndsAttributes = (target: HTMLInputElement) => {
@@ -260,6 +260,50 @@ Rails.delegate(
   },
 );
 
+// Logout handler - Direct logout without confirmation
+Rails.delegate(document, '[data-confirm-logout]', 'click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  void (async () => {
+    try {
+      const response = await fetch('/auth/sign_out', {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRF-Token':
+            document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+              ?.content ?? '',
+        },
+        credentials: 'same-origin',
+      });
+
+      if (response.ok) {
+        const data = (await response.json().catch(() => ({}))) as {
+          redirect_to?: string;
+        };
+
+        if (data.redirect_to) {
+          window.location.href = data.redirect_to;
+        } else {
+          window.location.href = '/';
+        }
+      } else {
+        console.error('Logout failed:', response.status);
+
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+
+      window.location.href = '/';
+    }
+  })();
+
+  return false;
+});
+
 async function mountReactComponent(element: Element) {
   const componentName = element.getAttribute('data-admin-component');
   const stringProps = element.getAttribute('data-props');
@@ -363,6 +407,7 @@ ready(() => {
   document.querySelectorAll('[data-admin-component]').forEach((element) => {
     void mountReactComponent(element);
   });
+  initializeAdminBadges();
 }).catch((reason: unknown) => {
   throw reason;
 });

@@ -1,14 +1,18 @@
+@use 'sass:color';
+
 // Commonly used web colors
 $black: #000000; // Black
 $white: #ffffff; // White
 $red-600: #b7253d !default; // Deep Carmine
 $red-500: #df405a !default; // Cerise
-$blurple-600: #563acc; // Iris
+$blurple-600: #324BFF; // Iris
 $blurple-500: #6364ff; // Brand purple
 $blurple-400: #7477fd; // Medium slate blue
 $blurple-300: #858afa; // Faded Blue
+$blurple-200: #07D0E0;
 $grey-600: hsl(240deg, 8%, 33%); // Trout
 $grey-100: hsl(240deg, 51%, 90%); // Topaz
+$grey-400: #A7AAB3;
 
 $success-green: #79bd9a !default; // Padua
 $error-red: $red-500 !default; // Cerise
@@ -18,10 +22,11 @@ $gold-star: #ca8f04 !default; // Dark Goldenrod
 $red-bookmark: $warning-red;
 
 // Values from the classic Mastodon UI
-$classic-base-color: hsl(240deg, 16%, 19%);
-$classic-primary-color: hsl(240deg, 29%, 70%);
-$classic-secondary-color: hsl(255deg, 25%, 88%);
-$classic-highlight-color: $blurple-500;
+$classic-base-color: hsl(0, 0%, 0%);
+$classic-primary-color: hsl(0.7, 31%, 89%);
+$classic-secondary-color: hsl(255deg, 27%, 87%);
+$classic-highlight-color: $blurple-200;
+$classic-highlight-color-2: $blurple-600;
 
 // Variables for defaults in UI
 $base-shadow-color: $black !default;
@@ -30,9 +35,10 @@ $base-border-color: $white !default;
 $simple-background-color: $white !default;
 $valid-value-color: $success-green !default;
 $error-value-color: $error-red !default;
+$general-background-color: #1B1E26;
 
 // Tell UI to use selected colors
-$ui-base-color: $classic-base-color !default; // Darkest
+$ui-base-color: $general-background-color !default; // Darkest
 $ui-base-lighter-color: lighten(
   $ui-base-color,
   26%
@@ -40,11 +46,19 @@ $ui-base-lighter-color: lighten(
 $ui-primary-color: $classic-primary-color !default; // Lighter
 $ui-secondary-color: $classic-secondary-color !default; // Lightest
 $ui-highlight-color: $classic-highlight-color !default;
-$ui-button-color: $white !default;
+$ui-highlight-color-2: $classic-highlight-color-2 !default;
+$ui-button-color: var(--ui-button-color) !default; // This will apply to light mode
 $ui-button-background-color: $blurple-500 !default;
+$ui-button-background-color: $blurple-200 !default;  // Base color for color.adjust
+ $ui-button-gradient: linear-gradient(to right, $blurple-200, $blurple-600) !default;
 $ui-button-focus-background-color: $blurple-600 !default;
 $ui-button-focus-outline-color: $blurple-400 !default;
 $ui-button-focus-outline: solid 2px $ui-button-focus-outline-color !default;
+
+$ui-button-disabled-color: color.adjust(
+  $ui-button-background-color,
+  $alpha: -0.3
+) !default;
 
 $ui-button-secondary-color: $blurple-500 !default;
 $ui-button-secondary-border-color: $blurple-500 !default;
@@ -67,11 +81,13 @@ $primary-text-color: $white !default;
 $darker-text-color: $ui-primary-color !default;
 $dark-text-color: $ui-base-lighter-color !default;
 $secondary-text-color: $ui-secondary-color !default;
-$highlight-text-color: lighten($ui-highlight-color, 8%) !default;
-$action-button-color: $ui-base-lighter-color !default;
+$highlight-text-color: $blurple-200 !default; // Updated for dark theme
+$highlight-text-color-2: lighten($ui-highlight-color-2, 8%) !default;
+$action-button-color:#A7AAB3 !default;
 $action-button-focus-color: lighten($ui-base-lighter-color, 4%) !default;
 $passive-text-color: $gold-star !default;
 $active-passive-text-color: $success-green !default;
+$icon-button-color: $grey-400 !default;
 
 // For texts on inverted backgrounds
 $inverted-text-color: $ui-base-color !default;
@@ -95,6 +111,7 @@ $font-display: 'mastodon-font-display' !default;
 $font-monospace: 'mastodon-font-monospace' !default;
 
 :root {
+  --ui-button-color: #000; // Default to black for dark mode
   --dropdown-border-color: #{lighten($ui-base-color, 4%)};
   --dropdown-background-color: #{rgba(darken($ui-base-color, 8%), 0.9)};
   --dropdown-shadow: 0 20px 25px -5px #{rgba($base-shadow-color, 0.25)},
@@ -107,13 +124,24 @@ $font-monospace: 'mastodon-font-monospace' !default;
   --background-color: #{darken($ui-base-color, 8%)};
   --background-color-tint: #{rgba(darken($ui-base-color, 8%), 0.9)};
   --surface-background-color: #{darken($ui-base-color, 4%)};
-  --surface-variant-background-color: #{$ui-base-color};
+  --surface-variant-background-color: #{rgba($ui-base-color, 0.95)};
   --surface-variant-active-background-color: #{lighten($ui-base-color, 4%)};
   --on-surface-color: #{transparentize($ui-base-color, 0.5)};
-  --avatar-border-radius: 8px;
+  --avatar-border-radius:378px;
   --media-outline-color: #{rgba(#fcf8ff, 0.15)};
   --overlay-icon-shadow: drop-shadow(0 0 8px #{rgba($base-shadow-color, 0.25)});
   --error-background-color: #{darken($error-red, 16%)};
   --error-active-background-color: #{darken($error-red, 12%)};
   --on-error-color: #fff;
+  --input-background-color: var(--surface-variant-background-color);
+  --active-nav-link-color: #{$blurple-200};
+  --dropdown-button-color: #{$grey-400};
+  --dropdown-button-border-color: #{$grey-400};
+  --icon-button-color: #{$grey-400};
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --ui-button-color: #fff; // Set to white for light mode
+  }
 }

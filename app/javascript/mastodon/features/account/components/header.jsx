@@ -20,7 +20,7 @@ import { Badge, AutomatedBadge, GroupBadge } from 'mastodon/components/badge';
 import { Button } from 'mastodon/components/button';
 import { CopyIconButton } from 'mastodon/components/copy_icon_button';
 import { FollowersCounter, FollowingCounter, StatusesCounter } from 'mastodon/components/counters';
-import { Icon }  from 'mastodon/components/icon';
+import { Icon } from 'mastodon/components/icon';
 import { IconButton } from 'mastodon/components/icon_button';
 import { LoadingIndicator } from 'mastodon/components/loading_indicator';
 import { ShortNumber } from 'mastodon/components/short_number';
@@ -34,7 +34,7 @@ import AccountNoteContainer from '../containers/account_note_container';
 import FollowRequestNoteContainer from '../containers/follow_request_note_container';
 
 import { DomainPill } from './domain_pill';
-
+import Badges from './badges';
 const messages = defineMessages({
   unfollow: { id: 'account.unfollow', defaultMessage: 'Unfollow' },
   follow: { id: 'account.follow', defaultMessage: 'Follow' },
@@ -88,7 +88,7 @@ const titleFromAccount = account => {
 };
 
 const messageForFollowButton = relationship => {
-  if(!relationship) return messages.follow;
+  if (!relationship) return messages.follow;
 
   if (relationship.get('following') && relationship.get('followed_by')) {
     return messages.mutual;
@@ -221,7 +221,7 @@ class Header extends ImmutablePureComponent {
     }
   };
 
-  _attachLinkEvents () {
+  _attachLinkEvents() {
     const node = this.node;
 
     if (!node) {
@@ -243,15 +243,15 @@ class Header extends ImmutablePureComponent {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._attachLinkEvents();
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     this._attachLinkEvents();
   }
 
-  render () {
+  render() {
     const { account, hidden, intl } = this.props;
     const { signedIn, permissions } = this.props.identity;
 
@@ -259,8 +259,8 @@ class Header extends ImmutablePureComponent {
       return null;
     }
 
-    const suspended    = account.get('suspended');
-    const isRemote     = account.get('acct') !== account.get('username');
+    const suspended = account.get('suspended');
+    const isRemote = account.get('acct') !== account.get('username');
     const remoteDomain = isRemote ? account.get('acct').split('@')[1] : null;
 
     let actionBtn, bellBtn, lockedIcon, shareBtn;
@@ -292,7 +292,7 @@ class Header extends ImmutablePureComponent {
       if (signedIn && !account.get('relationship')) { // Wait until the relationship is loaded
         actionBtn = <Button disabled><LoadingIndicator /></Button>;
       } else if (!account.getIn(['relationship', 'blocking'])) {
-        actionBtn = <Button disabled={account.getIn(['relationship', 'blocked_by'])} className={classNames({ 'button--destructive': (account.getIn(['relationship', 'following']) || account.getIn(['relationship', 'requested'])) })} text={intl.formatMessage(messageForFollowButton(account.get('relationship')))} onClick={signedIn ? this.props.onFollow : this.props.onInteractionModal} />;
+        actionBtn = <Button disabled={account.getIn(['relationship', 'blocked_by'])} className={classNames({ 'button--destructive': (account.getIn(['relationship', 'following']) || account.getIn(['relationship', 'requested'])) })} text={intl.formatMessage(messageForFollowButton(account.get('relationship')))} onClick={signedIn ? this.props.onFollow : () => window.location.href = '/auth/sign_in'} />;
       } else if (account.getIn(['relationship', 'blocking'])) {
         actionBtn = <Button text={intl.formatMessage(messages.unblock, { name: account.get('username') })} onClick={this.props.onBlock} />;
       }
@@ -387,13 +387,14 @@ class Header extends ImmutablePureComponent {
       }
     }
 
-    const content         = { __html: account.get('note_emojified') };
+    const content = { __html: account.get('note_emojified') };
     const displayNameHtml = { __html: account.get('display_name_html') };
-    const fields          = account.get('fields');
-    const isLocal         = account.get('acct').indexOf('@') === -1;
-    const username        = account.get('acct').split('@')[0];
-    const domain          = isLocal ? localDomain : account.get('acct').split('@')[1];
-    const isIndexable     = !account.get('noindex');
+    const fields = account.get('fields');
+    const isLocal = account.get('acct').indexOf('@') === -1;
+    const username = account.get('acct').split('@')[0];
+    const domain = isLocal ? localDomain : account.get('acct').split('@')[1];
+
+    const isIndexable = !account.get('noindex');
 
     const badges = [];
 
@@ -432,16 +433,48 @@ class Header extends ImmutablePureComponent {
               {!hidden && actionBtn}
             </div>
           </div>
+          <div style={{ display: 'flex', justifyContent: 'start', alignItems: 'start', flexDirection: 'row', gap: "10px", marginTop: "10px" }}>
+            <div className='account__header__tabs__name__container'>
+              <div className='account__header__tabs__name'>
+                <h1 style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span dangerouslySetInnerHTML={displayNameHtml} />
+                    {account.get('badges')?.toJS()
+                      .filter(badge => badge.rank === 1)
+                      .map((badge, index) => (
+                        <div key={index} style={{
+                          background: 'rgba(var(--accent-color-rgb), 0.1)',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}>
+                          <img
+                            src={badge.icon}
+                            alt={badge.name}
+                            title={badge.name}
+                            style={{
+                              width: '25px',
+                              height: '25px',
+                              objectFit: 'contain'
+                            }}
+                          />
+                        </div>
+                      ))}
+                  </div>
+                  <small>
+                    <span>@{username}<span className='invisible'>@{domain}</span></span>
+                    {/* 
+                    <DomainPill username={username} domain={domain} isSelf={me === account.get('id')} />
+                    */}
+                    {lockedIcon}
+                  </small>
+                </h1>
+              </div>
+            </div>
 
-          <div className='account__header__tabs__name'>
-            <h1>
-              <span dangerouslySetInnerHTML={displayNameHtml} />
-              <small>
-                <span>@{username}<span className='invisible'>@{domain}</span></span>
-                <DomainPill username={username} domain={domain} isSelf={me === account.get('id')} />
-                {lockedIcon}
-              </small>
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: "16px" }}>
+             
+            </div>
           </div>
 
           {badges.length > 0 && (
@@ -458,10 +491,42 @@ class Header extends ImmutablePureComponent {
                 {account.get('note').length > 0 && account.get('note') !== '<p></p>' && <div className='account__header__content translate' dangerouslySetInnerHTML={content} />}
 
                 <div className='account__header__fields'>
-                  <dl>
-                    <dt><FormattedMessage id='account.joined_short' defaultMessage='Joined' /></dt>
-                    <dd>{intl.formatDate(account.get('created_at'), { year: 'numeric', month: 'short', day: '2-digit' })}</dd>
-                  </dl>
+
+                  {account.get('badges')?.size > 0 && (
+                    <dl>
+                      <dt><FormattedMessage id='account.badges' defaultMessage='Badges' /></dt>
+                      <dd style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '4px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        paddingRight: '8px'
+                      }}>
+                        {account.get('badges')?.toJS().map((badge, index) => {
+                          return (
+                            <div key={index} style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '100%'
+                            }}>
+                              <span>{badge.name}</span>
+                              <img
+                                src={badge.icon}
+                                alt={badge.name}
+                                style={{
+                                  width: '25px',
+                                  height: '25px',
+                                  objectFit: 'contain'
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </dd>
+                    </dl>
+                  )}
 
                   {fields.map((pair, i) => (
                     <dl key={i} className={classNames({ verified: pair.get('verified_at') })}>
@@ -513,3 +578,4 @@ class Header extends ImmutablePureComponent {
 }
 
 export default withRouter(withIdentity(injectIntl(Header)));
+

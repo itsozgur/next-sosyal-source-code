@@ -3,7 +3,7 @@
 class StatusesIndex < Chewy::Index
   include DatetimeClampingConcern
 
-  settings index: index_preset(refresh_interval: '30s', number_of_shards: 5), analysis: {
+  settings index: index_preset(refresh_interval: '30s', number_of_shards: 5, max_ngram_diff: 6), analysis: {
     filter: {
       english_stop: {
         type: 'stop',
@@ -15,13 +15,35 @@ class StatusesIndex < Chewy::Index
         language: 'english',
       },
 
+      turkish_stemmer: {
+        type: 'stemmer',
+        language: 'turkish'
+      },
+
       english_possessive_stemmer: {
         type: 'stemmer',
         language: 'possessive_english',
       },
+
+      edge_ngram_filter: {
+        type: 'edge_ngram',
+        min_gram: 4,
+        max_gram: 10,
+      },
+
+      ngram_filter: {
+        type: 'ngram',
+        min_gram: 4,
+        max_gram: 10,
+      },
     },
 
     analyzer: {
+      search_std: {
+        tokenizer: 'standard',
+        filter: %w(lowercase icu_normalizer icu_folding)
+      },
+
       verbatim: {
         tokenizer: 'uax_url_email',
         filter: %w(lowercase),
@@ -31,12 +53,15 @@ class StatusesIndex < Chewy::Index
         tokenizer: 'standard',
         filter: %w(
           lowercase
-          asciifolding
-          cjk_width
           elision
           english_possessive_stemmer
           english_stop
           english_stemmer
+          turkish_stemmer
+          edge_ngram_filter
+          ngram_filter
+          icu_folding
+          icu_normalizer
         ),
       },
 
@@ -45,9 +70,14 @@ class StatusesIndex < Chewy::Index
         filter: %w(
           word_delimiter_graph
           lowercase
-          asciifolding
-          cjk_width
+          icu_folding
+          icu_normalizer
         ),
+      },
+
+      edge_ngram_analyzer: {
+        tokenizer: 'standard',
+        filter: %w(lowercase edge_ngram_filter icu_folding),
       },
     },
   }
@@ -57,8 +87,12 @@ class StatusesIndex < Chewy::Index
   root date_detection: false do
     field(:id, type: 'long')
     field(:account_id, type: 'long')
-    field(:text, type: 'text', analyzer: 'verbatim', value: ->(status) { status.searchable_text }) { field(:stemmed, type: 'text', analyzer: 'content') }
-    field(:tags, type: 'text', analyzer: 'hashtag',  value: ->(status) { status.tags.map(&:display_name) })
+    field(:text, type: 'text', analyzer: 'edge_ngram_analyzer', search_analyzer: 'search_std', value: ->(status) { status.searchable_text }) do
+      field :stemmed, type: 'text', analyzer: 'content'
+      field :std, type: 'text', analyzer: 'search_std', search_analyzer: 'search_std'
+      field :verbatim, type: 'text', analyzer: 'verbatim'
+    end
+    field(:tags, type: 'text', analyzer: 'hashtag', value: ->(status) { status.tags.map(&:display_name) })
     field(:searchable_by, type: 'long', value: ->(status) { status.searchable_by })
     field(:language, type: 'keyword')
     field(:properties, type: 'keyword', value: ->(status) { status.searchable_properties })

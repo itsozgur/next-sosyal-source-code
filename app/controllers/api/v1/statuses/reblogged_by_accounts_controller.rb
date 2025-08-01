@@ -19,7 +19,7 @@ class Api::V1::Statuses::RebloggedByAccountsController < Api::V1::Statuses::Base
   end
 
   def default_accounts
-    Account.without_suspended.includes(:statuses, :account_stat, :user).references(:statuses)
+    Account.without_suspended.includes(:statuses, :account_stat, :user, account_badges: :badge).references(:statuses)
   end
 
   def paginated_statuses

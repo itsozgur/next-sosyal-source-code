@@ -8,25 +8,19 @@ import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 import AlternateEmailIcon from '@/material-icons/400-24px/alternate_email.svg?react';
-import BookmarksActiveIcon from '@/material-icons/400-24px/bookmarks-fill.svg?react';
 import BookmarksIcon from '@/material-icons/400-24px/bookmarks.svg?react';
-import ExploreActiveIcon from '@/material-icons/400-24px/explore-fill.svg?react';
 import ExploreIcon from '@/material-icons/400-24px/explore.svg?react';
 import ModerationIcon from '@/material-icons/400-24px/gavel.svg?react';
-import HomeActiveIcon from '@/material-icons/400-24px/home-fill.svg?react';
 import HomeIcon from '@/material-icons/400-24px/home.svg?react';
-import ListAltActiveIcon from '@/material-icons/400-24px/list_alt-fill.svg?react';
 import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
 import AdministrationIcon from '@/material-icons/400-24px/manufacturing.svg?react';
 import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
-import NotificationsActiveIcon from '@/material-icons/400-24px/notifications-fill.svg?react';
 import NotificationsIcon from '@/material-icons/400-24px/notifications.svg?react';
 import PersonAddActiveIcon from '@/material-icons/400-24px/person_add-fill.svg?react';
 import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
 import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import SearchIcon from '@/material-icons/400-24px/search.svg?react';
 import SettingsIcon from '@/material-icons/400-24px/settings.svg?react';
-import StarActiveIcon from '@/material-icons/400-24px/star-fill.svg?react';
 import StarIcon from '@/material-icons/400-24px/star.svg?react';
 import { fetchFollowRequests } from 'mastodon/actions/accounts';
 import { IconWithBadge } from 'mastodon/components/icon_with_badge';
@@ -42,6 +36,7 @@ import ColumnLink from './column_link';
 import DisabledAccountBanner from './disabled_account_banner';
 import { ListPanel } from './list_panel';
 import SignInBanner from './sign_in_banner';
+import { NavigationBar } from 'mastodon/features/compose/components/navigation_bar';
 
 const messages = defineMessages({
   home: { id: 'tabs_bar.home', defaultMessage: 'Home' },
@@ -74,7 +69,7 @@ const NotificationsLink = () => {
       transparent
       to='/notifications'
       icon={<IconWithBadge id='bell' icon={NotificationsIcon} count={count} className='column-link__icon' />}
-      activeIcon={<IconWithBadge id='bell' icon={NotificationsActiveIcon} count={count} className='column-link__icon' />}
+      activeIcon={<IconWithBadge id='bell' icon={NotificationsIcon} count={count} className='column-link__icon' />}
       text={intl.formatMessage(messages.notifications)}
     />
   );
@@ -125,7 +120,7 @@ class NavigationPanel extends Component {
         <div className='switch-to-advanced'>
           {intl.formatMessage(messages.openedInClassicInterface)}
           {" "}
-          <a href={`/deck${location.pathname}`} className='switch-to-advanced__toggle'>
+          <a href={`/deck${location.pathname}`} className='switch-to-advanced__toggle' data-testid="navigation_panel-switch-a">
             {intl.formatMessage(messages.advancedInterface)}
           </a>
         </div>
@@ -144,17 +139,17 @@ class NavigationPanel extends Component {
           </div>
         }
 
-        <div className='navigation-panel__menu'>
+        <div className='navigation-panel__menu' id='navigation-panel-menu'>
           {signedIn && (
             <>
-              <ColumnLink transparent to='/home' icon='home' iconComponent={HomeIcon} activeIconComponent={HomeActiveIcon} text={intl.formatMessage(messages.home)} />
+              <ColumnLink transparent to='/home' icon='home' iconComponent={HomeIcon} activeIconComponent={HomeIcon} text={intl.formatMessage(messages.home)} />
               <NotificationsLink />
               <FollowRequestsLink />
             </>
           )}
 
           {trendsEnabled ? (
-            <ColumnLink transparent to='/explore' icon='explore' iconComponent={ExploreIcon} activeIconComponent={ExploreActiveIcon} text={intl.formatMessage(messages.explore)} />
+            <ColumnLink transparent to='/explore' icon='explore' iconComponent={ExploreIcon} activeIconComponent={ExploreIcon} text={intl.formatMessage(messages.explore)} />
           ) : (
             <ColumnLink transparent to='/search' icon='search' iconComponent={SearchIcon} text={intl.formatMessage(messages.search)} />
           )}
@@ -173,9 +168,9 @@ class NavigationPanel extends Component {
           {signedIn && (
             <>
               <ColumnLink transparent to='/conversations' icon='at' iconComponent={AlternateEmailIcon} text={intl.formatMessage(messages.direct)} />
-              <ColumnLink transparent to='/bookmarks' icon='bookmarks' iconComponent={BookmarksIcon} activeIconComponent={BookmarksActiveIcon} text={intl.formatMessage(messages.bookmarks)} />
-              <ColumnLink transparent to='/favourites' icon='star' iconComponent={StarIcon} activeIconComponent={StarActiveIcon} text={intl.formatMessage(messages.favourites)} />
-              <ColumnLink transparent to='/lists' icon='list-ul' iconComponent={ListAltIcon} activeIconComponent={ListAltActiveIcon} text={intl.formatMessage(messages.lists)} />
+              <ColumnLink transparent to='/bookmarks' icon='bookmarks' iconComponent={BookmarksIcon} activeIconComponent={BookmarksIcon} text={intl.formatMessage(messages.bookmarks)} />
+              <ColumnLink transparent to='/favourites' icon='star' iconComponent={StarIcon} activeIconComponent={StarIcon} text={intl.formatMessage(messages.favourites)} />
+              <ColumnLink transparent to='/lists' icon='list-ul' iconComponent={ListAltIcon} activeIconComponent={ListAltIcon} text={intl.formatMessage(messages.lists)} />
 
               <ListPanel />
 
@@ -194,7 +189,11 @@ class NavigationPanel extends Component {
           </div>
         </div>
 
-        <div className='flex-spacer' />
+        {signedIn && (
+          <div className='navigation-panel__profile'>
+            <NavigationBar />
+          </div>
+        )}
 
         <NavigationPortal />
       </div>

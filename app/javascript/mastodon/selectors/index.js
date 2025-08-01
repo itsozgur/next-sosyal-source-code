@@ -15,9 +15,10 @@ export const makeGetStatus = () => {
       (state, { id }) => state.getIn(['accounts', state.getIn(['statuses', id, 'account'])]),
       (state, { id }) => state.getIn(['accounts', state.getIn(['statuses', state.getIn(['statuses', id, 'reblog']), 'account'])]),
       getFilters,
+      (_, { contextType }) => ['detailed', 'bookmarks', 'favourites'].includes(contextType),
     ],
 
-    (statusBase, statusReblog, accountBase, accountReblog, filters) => {
+    (statusBase, statusReblog, accountBase, accountReblog, filters, warnInsteadOfHide) => {
       if (!statusBase || statusBase.get('isLoading')) {
         return null;
       }
@@ -31,7 +32,7 @@ export const makeGetStatus = () => {
       let filtered = false;
       if ((accountReblog || accountBase).get('id') !== me && filters) {
         let filterResults = statusReblog?.get('filtered') || statusBase.get('filtered') || ImmutableList();
-        if (filterResults.some((result) => filters.getIn([result.get('filter'), 'filter_action']) === 'hide')) {
+        if (!warnInsteadOfHide && filterResults.some((result) => filters.getIn([result.get('filter'), 'filter_action']) === 'hide')) {
           return null;
         }
         filterResults = filterResults.filter(result => filters.has(result.get('filter')));
@@ -117,3 +118,35 @@ export const getAccountHidden = createSelector([
 export const getStatusList = createSelector([
   (state, type) => state.getIn(['status_lists', type, 'items']),
 ], (items) => items.toList());
+
+export const makeGetCommentPagination = () => {
+  return createSelector(
+    [
+      (state, { statusId }) => state.getIn(['comment_pagination', statusId]),
+    ],
+    (pagination) => {
+      if (!pagination) {
+        return ImmutableMap({
+          items: ImmutableList(),
+          isLoading: false,
+          isExpanding: false,
+          hasMore: false,
+          links: null,
+        });
+      }
+      return pagination;
+    }
+  );
+};
+
+export const makeGetComments = () => {
+  return createSelector(
+    [
+      (state, { statusId }) => state.getIn(['comment_pagination', statusId, 'items'], ImmutableList()),
+      (state) => state.get('statuses'),
+    ],
+    (commentIds, statuses) => {
+      return commentIds.map(id => statuses.get(id)).filter(status => status !== null);
+    }
+  );
+};

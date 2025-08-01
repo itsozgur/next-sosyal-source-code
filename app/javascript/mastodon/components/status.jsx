@@ -14,11 +14,16 @@ import PushPinIcon from '@/material-icons/400-24px/push_pin.svg?react';
 import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
 import { ContentWarning } from 'mastodon/components/content_warning';
 import { FilterWarning } from 'mastodon/components/filter_warning';
-import { Icon }  from 'mastodon/components/icon';
+import { Icon } from 'mastodon/components/icon';
 import PictureInPicturePlaceholder from 'mastodon/components/picture_in_picture_placeholder';
 import { withOptionalRouter, WithOptionalRouterPropTypes } from 'mastodon/utils/react_router';
+import StatusDropdownMenu from 'mastodon/components/status_dropdown_menu';
 
 import Card from '../features/status/components/card';
+import QuotePreview from '../features/status/components/quote_preview';
+
+
+
 // We use the component (and not the container) since we do not want
 // to use the progress bar to show download progress
 import Bundle from '../features/ui/components/bundle';
@@ -35,6 +40,10 @@ import StatusActionBar from './status_action_bar';
 import StatusContent from './status_content';
 import { StatusThreadLabel } from './status_thread_label';
 import { VisibilityIcon } from './visibility_icon';
+
+import { useInView } from 'react-intersection-observer';
+import { useEffect, useState } from 'react';
+import api from 'mastodon/api';
 
 const domParser = new DOMParser();
 
@@ -77,7 +86,80 @@ const messages = defineMessages({
   private_short: { id: 'privacy.private.short', defaultMessage: 'Followers' },
   direct_short: { id: 'privacy.direct.short', defaultMessage: 'Specific people' },
   edited: { id: 'status.edited', defaultMessage: 'Edited {date}' },
+  scheduled_for: { id: 'status.scheduled_for', defaultMessage: 'Scheduled for {date}' },
+  scheduled_for_tr: { id: 'status.scheduled_for_tr', defaultMessage: '{date} planlandı' },
+  reply: { id: 'status.reply', defaultMessage: 'Reply' },
+  copy: { id: 'status.copy', defaultMessage: 'Copy' },
+  edit: { id: 'status.edit', defaultMessage: 'Edit' },
+  delete: { id: 'status.delete', defaultMessage: 'Delete' },
+  redraft: { id: 'status.redraft', defaultMessage: 'Redraft' },
+  pin: { id: 'status.pin', defaultMessage: '{name} pinned' },
+  mention: { id: 'status.mention', defaultMessage: '{name} mentioned' },
+  direct: { id: 'status.direct', defaultMessage: '{name} direct' },
+  mute: { id: 'status.mute', defaultMessage: '{name} muted' },
+  block: { id: 'status.block', defaultMessage: '{name} blocked' },
+  unmute: { id: 'status.unmute', defaultMessage: '{name} unmuted' },
+  unblock: { id: 'status.unblock', defaultMessage: '{name} unblocked' },
+  report: { id: 'status.report', defaultMessage: '{name} reported' },
+  open_original_page: { id: 'status.open_original_page', defaultMessage: 'Open original page' },
 });
+
+
+
+const viewedStatusIds = new Set();
+
+const StatusWithInView = (props) => {
+  const { ref: inViewRef, inView } = useInView({
+    threshold: 0.3, 
+    triggerOnce: false,
+  });
+
+  const [timer, setTimer] = useState(null);
+  const statusId = props.status.get('id');
+
+  useEffect(() => {
+
+    const alreadyViewed = viewedStatusIds.has(statusId);
+    
+    if (inView && !alreadyViewed && !timer) {
+      const newTimer = setTimeout(() => {
+        if (!viewedStatusIds.has(statusId)) {
+          api().post(`/api/v1/statuses/${statusId}/views`)
+            .then(() => {
+              viewedStatusIds.add(statusId); 
+            })
+            .catch(error => {
+              console.error('View tracking error:', error);
+            });
+        }
+        setTimer(null);
+      }, 2000); 
+
+      setTimer(newTimer);
+    } else if (!inView && timer) {
+      clearTimeout(timer);
+      setTimer(null);
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [inView, statusId]); 
+
+  const setRefs = (element) => {
+    inViewRef(element);
+    if (props.handleRef) props.handleRef(element);
+  };
+
+  return <Status {...props} handleRef={setRefs} />;
+};
+
+StatusWithInView.propTypes = {
+  status: ImmutablePropTypes.map,
+  handleRef: PropTypes.func,
+};
 
 class Status extends ImmutablePureComponent {
 
@@ -145,7 +227,7 @@ class Status extends ImmutablePureComponent {
     showDespiteFilter: undefined,
   };
 
-  componentDidUpdate (prevProps) {
+  componentDidUpdate(prevProps) {
     // This will potentially cause a wasteful redraw, but in most cases `Status` components are used
     // with a `key` directly depending on their `id`, preventing re-use of the component across
     // different IDs.
@@ -172,6 +254,10 @@ class Status extends ImmutablePureComponent {
       e.preventDefault();
     }
 
+    if (this.props.status.get('scheduled_at')) {
+      return;
+    }
+
     this.handleHotkeyOpen();
   };
 
@@ -180,7 +266,7 @@ class Status extends ImmutablePureComponent {
   };
 
   handleAccountClick = (e, proper = true) => {
-    if (e && (e.button !== 0 || e.ctrlKey || e.metaKey))  {
+    if (e && (e.button !== 0 || e.ctrlKey || e.metaKey)) {
       return;
     }
 
@@ -204,7 +290,7 @@ class Status extends ImmutablePureComponent {
     this.props.onTranslate(this._properStatus());
   };
 
-  getAttachmentAspectRatio () {
+  getAttachmentAspectRatio() {
     const attachments = this._properStatus().get('media_attachments');
 
     if (attachments.getIn([0, 'type']) === 'video') {
@@ -296,7 +382,7 @@ class Status extends ImmutablePureComponent {
     const { history } = this.props;
     const status = this._properStatus();
 
-    if (!history) {
+    if (!history || status.get('scheduled_at')) {
       return;
     }
 
@@ -330,7 +416,7 @@ class Status extends ImmutablePureComponent {
     const { onToggleHidden } = this.props;
     const status = this._properStatus();
 
-    if (status.get('matched_filters')) {
+    if (this.props.status.get('matched_filters')) {
       const expandedBecauseOfCW = !status.get('hidden') || status.get('spoiler_text').length === 0;
       const expandedBecauseOfFilter = this.state.showDespiteFilter;
 
@@ -339,7 +425,7 @@ class Status extends ImmutablePureComponent {
       } else if (expandedBecauseOfFilter && expandedBecauseOfCW) {
         onToggleHidden(status);
         this.handleFilterToggle();
-      } else  {
+      } else {
         this.handleFilterToggle();
       }
     } else {
@@ -355,7 +441,7 @@ class Status extends ImmutablePureComponent {
     this.setState(state => ({ ...state, showDespiteFilter: !state.showDespiteFilter }));
   };
 
-  _properStatus () {
+  _properStatus() {
     const { status } = this.props;
 
     if (status.get('reblog', null) !== null && typeof status.get('reblog') === 'object') {
@@ -366,10 +452,13 @@ class Status extends ImmutablePureComponent {
   }
 
   handleRef = c => {
-    this.node = c;
+    if (this.props.handleRef) {
+      this.props.handleRef(c);
+    }
   };
+ 
 
-  render () {
+  render() {
     const { intl, hidden, featured, unfocusable, unread, showThread, scrollKey, pictureInPicture, previousId, nextInReplyToId, rootId, skipPrepend, avatarSize = 46 } = this.props;
 
     let { status, account, ...other } = this.props;
@@ -410,6 +499,7 @@ class Status extends ImmutablePureComponent {
     const connectReply = nextInReplyToId && nextInReplyToId === status.get('id');
     const matchedFilters = status.get('matched_filters');
 
+
     if (featured) {
       prepend = (
         <div className='status__prepend'>
@@ -430,7 +520,7 @@ class Status extends ImmutablePureComponent {
       rebloggedByText = intl.formatMessage({ id: 'status.reblogged_by', defaultMessage: '{name} boosted' }, { name: status.getIn(['account', 'acct']) });
 
       account = status.get('account');
-      status  = status.get('reblog');
+      status = status.get('reblog');
     } else if (status.get('visibility') === 'direct') {
       prepend = (
         <div className='status__prepend'>
@@ -520,7 +610,7 @@ class Status extends ImmutablePureComponent {
           </Bundle>
         );
       }
-    } else if (status.get('spoiler_text').length === 0 && status.get('card')) {
+    } else if (status.get('card')) {
       media = (
         <Card
           onOpenMedia={this.handleOpenMedia}
@@ -537,36 +627,97 @@ class Status extends ImmutablePureComponent {
       statusAvatar = <AvatarOverlay account={status.get('account')} friend={account} />;
     }
 
-    const {statusContentProps, hashtagBar} = getHashtagBarForStatus(status);
+    const { statusContentProps, hashtagBar } = getHashtagBarForStatus(status);
     const expanded = (!matchedFilters || this.state.showDespiteFilter) && (!status.get('hidden') || status.get('spoiler_text').length === 0);
+   
+
+    const quotedStatus = status.get('quoted_status');
+    const hasQuotes = !!quotedStatus;
+    const hasMedia = status.get('media_attachments').size > 0;
+    const hasCard = !!status.get('card');
+
+
+    let quotePreview = null;
+    if (hasQuotes) {
+      quotePreview = (
+        <div className='quote-previews'>
+          <QuotePreview
+            quotedStatus={quotedStatus}
+            compact
+            onOpenMedia={this.handleOpenMedia}
+          />
+        </div>
+      );
+    }
 
     return (
       <HotKeys handlers={handlers} tabIndex={unfocusable ? null : -1}>
-        <div className={classNames('status__wrapper', `status__wrapper-${status.get('visibility')}`, { 'status__wrapper-reply': !!status.get('in_reply_to_id'), unread, focusable: !this.props.muted })} tabIndex={this.props.muted || unfocusable ? null : 0} data-featured={featured ? 'true' : null} aria-label={textForScreenReader(intl, status, rebloggedByText)} ref={this.handleRef} data-nosnippet={status.getIn(['account', 'noindex'], true) || undefined}>
+        <div className={classNames('status__wrapper', `status__wrapper-${status.get('visibility')}`, { 'status__wrapper-reply': !!status.get('in_reply_to_id'), unread, focusable: !this.props.muted })} tabIndex={this.props.muted || unfocusable ? null : 0} data-featured={featured ? 'true' : null} aria-label={textForScreenReader(intl, status, rebloggedByText)}  ref={this.handleRef} data-nosnippet={status.getIn(['account', 'noindex'], true) || undefined}>
           {!skipPrepend && prepend}
 
           <div className={classNames('status', `status-${status.get('visibility')}`, { 'status-reply': !!status.get('in_reply_to_id'), 'status--in-thread': !!rootId, 'status--first-in-thread': previousId && (!connectUp || connectToRoot), muted: this.props.muted })} data-id={status.get('id')}>
             {(connectReply || connectUp || connectToRoot) && <div className={classNames('status__line', { 'status__line--full': connectReply, 'status__line--first': !status.get('in_reply_to_id') && !connectToRoot })} />}
 
             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
-            <div onClick={this.handleClick} className='status__info'>
-              <a href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} className='status__relative-time' target='_blank' rel='noopener noreferrer'>
-                <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('visibility')} /></span>
-                <RelativeTimestamp timestamp={status.get('created_at')} />{status.get('edited_at') && <abbr title={intl.formatMessage(messages.edited, { date: intl.formatDate(status.get('edited_at'), { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}> *</abbr>}
-              </a>
+            <div onClick={this.handleClick} className={classNames('status__info', { 'status__info--scheduled': status.get('scheduled_at') })}>
+                <a onClick={this.handleAccountClick} href={`/@${status.getIn(['account', 'acct'])}`} title={status.getIn(['account', 'acct'])} data-hover-card-account={status.getIn(['account', 'id'])} className={classNames('status__display-name', { 'status__display-name--scheduled': status.get('scheduled_at') })} target='_blank' rel='noopener noreferrer'>
+        
+                  <div className='status__avatar'>
+                    {statusAvatar}
+                  </div>
 
-              <a onClick={this.handleAccountClick} href={`/@${status.getIn(['account', 'acct'])}`} title={status.getIn(['account', 'acct'])} data-hover-card-account={status.getIn(['account', 'id'])} className='status__display-name' target='_blank' rel='noopener noreferrer'>
-                <div className='status__avatar'>
-                  {statusAvatar}
-                </div>
-
-                <DisplayName account={status.get('account')} />
-              </a>
+                  <DisplayName account={status.get('account')} />
+                  {status.get('scheduled_at') ? (
+                    <span className='status__relative-time'>
+                      <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('visibility')} /></span>
+                      <time dateTime={status.get('scheduled_at')} title={intl.formatDate(status.get('scheduled_at'), { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}>
+                        {intl.formatMessage(
+                          intl.locale === 'tr' ? messages.scheduled_for_tr : messages.scheduled_for,
+                          { date: intl.formatDate(status.get('scheduled_at'), { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }
+                        )}
+                      </time>
+                      
+                    </span>
+                  ) : (
+                    <a href={`/@${status.getIn(['account', 'acct'])}/${status.get('id')}`} className='status__relative-time' target='_blank' rel='noopener noreferrer' data-testid="status-status__relative-a">
+                      <span className='status__visibility-icon'><VisibilityIcon visibility={status.get('visibility')} /></span>
+                      <RelativeTimestamp timestamp={status.get('created_at')} />
+                      {status.get('edited_at') && <abbr title={intl.formatMessage(messages.edited, { date: intl.formatDate(status.get('edited_at'), { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) })}></abbr>}
+                    </a>
+                  )}
+                </a>
+                <StatusDropdownMenu 
+                  status={status}
+                  onReply={this.props.onReply}
+                  onFavourite={this.props.onFavourite}
+                  onReblog={this.props.onReblog}
+                  onDelete={this.props.onDelete}
+                  onDirect={this.props.onDirect}
+                  onMention={this.props.onMention}
+                  onMute={this.props.onMute}
+                  onUnmute={this.props.onUnmute}
+                  onBlock={this.props.onBlock}
+                  onUnblock={this.props.onUnblock}
+                  onBlockDomain={this.props.onBlockDomain}
+                  onUnblockDomain={this.props.onUnblockDomain}
+                  onReport={this.props.onReport}
+                  onEmbed={this.props.onEmbed}
+                  onMuteConversation={this.props.onMuteConversation}
+                  onPin={this.props.onPin}
+                  onBookmark={this.props.onBookmark}
+                  onFilter={this.props.onFilter}
+                  onEdit={this.props.onEdit}
+                  onUpdateScheduledPost={this.props.onUpdateScheduledPost}
+                  onAddFilter={this.props.onAddFilter}
+                  onInteractionModal={this.props.onInteractionModal}
+                  scrollKey={scrollKey}
+                />
             </div>
 
             {matchedFilters && <FilterWarning title={matchedFilters.join(', ')} expanded={this.state.showDespiteFilter} onClick={this.handleFilterToggle} />}
 
             {(status.get('spoiler_text').length > 0 && (!matchedFilters || this.state.showDespiteFilter)) && <ContentWarning text={status.getIn(['translation', 'spoilerHtml']) || status.get('spoilerHtml')} expanded={expanded} onClick={this.handleExpandedToggle} />}
+
 
             {expanded && (
               <>
@@ -579,7 +730,28 @@ class Status extends ImmutablePureComponent {
                   {...statusContentProps}
                 />
 
-                {media}
+                {/* Quote + Media: Media first, then quote preview */}
+                {hasQuotes && hasMedia ? (
+                  <>
+                    {media}
+                    {quotePreview}
+                  </>
+                ) : hasQuotes ? (
+                  /* Quote only: Show quote preview */
+                  quotePreview
+                ) : hasMedia ? (
+                  /* Media only: Show media */
+                  media
+                ) : hasCard && !hasQuotes ? (
+                  /* Normal link (not quote): Show card only if no quotes */
+                  <Card
+                    onOpenMedia={this.handleOpenMedia}
+                    card={status.get('card')}
+                    compact
+                    sensitive={status.get('sensitive')}
+                  />
+                ) : null}
+
                 {hashtagBar}
               </>
             )}
@@ -593,4 +765,5 @@ class Status extends ImmutablePureComponent {
 
 }
 
-export default withOptionalRouter(injectIntl(Status));
+export default withOptionalRouter(injectIntl(StatusWithInView));
+

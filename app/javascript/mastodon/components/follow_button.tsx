@@ -90,7 +90,7 @@ export const FollowButton: React.FC<{
         target='_blank'
         rel='noreferrer noopener'
         className='button button-secondary'
-      >
+      data-testid="follow_button-show-a">
         {label}
       </a>
     );

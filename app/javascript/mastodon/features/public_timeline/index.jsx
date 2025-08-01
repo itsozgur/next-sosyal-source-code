@@ -79,7 +79,7 @@ class PublicTimeline extends PureComponent {
     const { dispatch, onlyMedia, onlyRemote } = this.props;
     const { signedIn } = this.props.identity;
 
-    dispatch(expandPublicTimeline({ onlyMedia, onlyRemote }));
+    dispatch(expandPublicTimeline({ onlyMedia, onlyRemote, limit: 10 }));
 
     if (signedIn) {
       this.disconnect = dispatch(connectPublicStream({ onlyMedia, onlyRemote }));
@@ -96,7 +96,7 @@ class PublicTimeline extends PureComponent {
         this.disconnect();
       }
 
-      dispatch(expandPublicTimeline({ onlyMedia, onlyRemote }));
+      dispatch(expandPublicTimeline({ onlyMedia, onlyRemote, limit: 10 }));
 
       if (signedIn) {
         this.disconnect = dispatch(connectPublicStream({ onlyMedia, onlyRemote }));
@@ -118,7 +118,7 @@ class PublicTimeline extends PureComponent {
   handleLoadMore = maxId => {
     const { dispatch, onlyMedia, onlyRemote } = this.props;
 
-    dispatch(expandPublicTimeline({ maxId, onlyMedia, onlyRemote }));
+    dispatch(expandPublicTimeline({ maxId, onlyMedia, onlyRemote, limit: 10 }));
   };
 
   render () {

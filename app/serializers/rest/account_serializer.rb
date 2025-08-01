@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'services/badges_service'
 
 class REST::AccountSerializer < ActiveModel::Serializer
   include RoutingHelper
@@ -8,7 +9,7 @@ class REST::AccountSerializer < ActiveModel::Serializer
 
   attributes :id, :username, :acct, :display_name, :locked, :bot, :discoverable, :indexable, :group, :created_at,
              :note, :url, :uri, :avatar, :avatar_static, :header, :header_static,
-             :followers_count, :following_count, :statuses_count, :last_status_at, :hide_collections
+             :followers_count, :following_count, :statuses_count, :last_status_at, :hide_collections, :badges
 
   has_one :moved_to_account, key: :moved, serializer: REST::AccountSerializer, if: :moved_and_not_nested?
 
@@ -156,5 +157,26 @@ class REST::AccountSerializer < ActiveModel::Serializer
 
   def moved_and_not_nested?
     object.moved?
+  end
+
+  def badges
+    return [] if object.unavailable?
+    
+    # Eager load badges with account_badges for performance
+    if object.association(:account_badges).loaded? && object.association(:badges).loaded?
+      object.account_badges.by_badge_order.includes(:badge).map do |account_badge|
+        {
+          name: account_badge.badge.name,
+          icon: account_badge.badge.icon,
+          rank: account_badge.badge.rank,
+          order: account_badge.badge.order
+        }
+      end
+    else
+      # Fallback if not preloaded
+      object.account_badges.joins(:badge).merge(Badge.active.ordered)
+            .pluck('badges.name', 'badges.icon', 'badges.rank', 'badges.order')
+            .map { |name, icon, rank, order| { name: name, icon: icon, rank: rank, order: order } }
+    end
   end
 end

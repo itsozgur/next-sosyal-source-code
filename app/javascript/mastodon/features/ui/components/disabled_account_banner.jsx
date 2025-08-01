@@ -70,7 +70,7 @@ class DisabledAccountBanner extends PureComponent {
             />
           )}
         </p>
-        <a href='/auth/edit' className='button button--block'>
+        <a href='/auth/edit' className='button button--block' data-testid="disabled_account_banner-block-a">
           <FormattedMessage id='disabled_account_banner.account_settings' defaultMessage='Account settings' />
         </a>
         <button type='button' className='button button--block button-tertiary' onClick={this.handleLogOutClick}>

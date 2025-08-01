@@ -19,6 +19,7 @@ import IntersectionObserverWrapper from '../features/ui/util/intersection_observ
 import { LoadMore } from './load_more';
 import { LoadPending } from './load_pending';
 import { LoadingIndicator } from './loading_indicator';
+import { FormattedMessage } from 'react-intl';
 
 const MOUSE_IDLE_DELAY = 300;
 
@@ -89,6 +90,8 @@ class ScrollableList extends PureComponent {
   state = {
     fullscreen: null,
     cachedMediaWidth: 250, // Default media/card width using default Mastodon theme
+    hasNewPosts: false,
+    lastScrollTop: 0,
   };
 
   intersectionObserverWrapper = new IntersectionObserverWrapper();
@@ -100,12 +103,18 @@ class ScrollableList extends PureComponent {
       const clientHeight = this.getClientHeight();
       const offset = scrollHeight - scrollTop - clientHeight;
 
+      // Check if user has scrolled down and new posts are available
+      if (scrollTop > 100 && this.props.numPending > 0) {
+        this.setState({ hasNewPosts: true });
+      }
+
       if (scrollTop > 0 && offset < 400 && this.props.onLoadMore && this.props.hasMore && !this.props.isLoading) {
         this.props.onLoadMore();
       }
 
       if (scrollTop < 100 && this.props.onScrollToTop) {
         this.props.onScrollToTop();
+        this.setState({ hasNewPosts: false });
       } else if (this.props.onScroll) {
         this.props.onScroll();
       }
@@ -178,6 +187,14 @@ class ScrollableList extends PureComponent {
 
     this.mouseMovedRecently = false;
     this.scrollToTopOnMouseIdle = false;
+  };
+
+  handleNewPostsClick = () => {
+    this.setScrollTop(0);
+    this.setState({ hasNewPosts: false });
+    if (this.props.onLoadPending) {
+      this.props.onLoadPending();
+    }
   };
 
   componentDidMount () {
@@ -325,11 +342,17 @@ class ScrollableList extends PureComponent {
 
   render () {
     const { children, scrollKey, trackScroll, showLoading, isLoading, hasMore, numPending, prepend, alwaysPrepend, append, emptyMessage, onLoadMore } = this.props;
-    const { fullscreen } = this.state;
+    const { fullscreen, hasNewPosts } = this.state;
     const childrenCount = Children.count(children);
 
     const loadMore     = (hasMore && onLoadMore) ? <LoadMore visible={!isLoading} onClick={this.handleLoadMore} /> : null;
     const loadPending  = (numPending > 0) ? <LoadPending count={numPending} onClick={this.handleLoadPending} /> : null;
+    const newPostsButton = hasNewPosts ? (
+      <button className='new-posts-button' onClick={this.handleNewPostsClick}>
+        <FormattedMessage id='status.new_posts' defaultMessage='New posts' />
+      </button>
+    ) : null;
+
     let scrollableArea = null;
 
     if (showLoading) {
@@ -337,6 +360,7 @@ class ScrollableList extends PureComponent {
         <div className='scrollable scrollable--flex' ref={this.setRef}>
           <div role='feed' className='item-list'>
             {prepend}
+            {newPostsButton}
           </div>
 
           <div className='scrollable__append'>
@@ -349,7 +373,7 @@ class ScrollableList extends PureComponent {
         <div className={classNames('scrollable', { fullscreen })} ref={this.setRef} onMouseMove={this.handleMouseMove}>
           <div role='feed' className='item-list'>
             {prepend}
-
+            {newPostsButton}
             {loadPending}
 
             {Children.map(this.props.children, (child, index) => (

@@ -90,6 +90,14 @@ export function Favourites () {
   return import(/* webpackChunkName: "features/favourites" */'../../favourites');
 }
 
+export function Quoters () {
+  return import(/* webpackChunkName: "features/quoters" */'../../quoters');
+}
+
+export function Quotes () {
+  return import(/* webpackChunkName: "features/quotes" */'../../quotes');
+}
+
 export function FollowRequests () {
   return import(/* webpackChunkName: "features/follow_requests" */'../../follow_requests');
 }
@@ -216,4 +224,8 @@ export function NotificationRequest () {
 
 export function LinkTimeline () {
   return import(/*webpackChunkName: "features/link_timeline" */'../../link_timeline');
+}
+
+export function ScheduledStatuses () {
+  return import(/*webpackChunkName: "features/scheduled_statuses" */'../../../features/scheduled_statuses');
 }

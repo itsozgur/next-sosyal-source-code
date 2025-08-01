@@ -15,7 +15,7 @@ const ColumnLink = ({ icon, activeIcon, iconComponent, activeIconComponent, text
 
   if (href) {
     return (
-      <a href={href} className={className} data-method={method} title={text} {...other}>
+      <a href={href} className={className} data-method={method} title={text} {...other} data-testid="column_link-show-a">
         {active ? activeIconElement : iconElement}
         <span>{text}</span>
         {badgeElement}

@@ -2,7 +2,7 @@
 # important settings can be changed from the admin interface.
 
 defaults: &defaults
-  site_title: Mastodon
+  site_title: <%= ENV.fetch("SITE_NAME", "Sosyal") %>
   site_short_description: ''
   site_description: ''
   site_extended_description: ''
@@ -38,6 +38,8 @@ defaults: &defaults
   require_invite_text: false
   backups_retention_period: 7
   captcha_enabled: false
+  allow_federated_instances:
+    - sosyal.nextconnect.app
 
 development:
   <<: *defaults

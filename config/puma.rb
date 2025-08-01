@@ -21,6 +21,8 @@ on_worker_boot do
   ActiveSupport.on_load(:active_record) do
     ActiveRecord::Base.establish_connection
   end
+  Rails.logger = CustomLogger.build
+  ActiveRecord::Base.logger = nil
 end
 
 plugin :tmp_restart

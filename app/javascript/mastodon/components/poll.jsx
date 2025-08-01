@@ -47,6 +47,7 @@ class Poll extends ImmutablePureComponent {
     disabled: PropTypes.bool,
     refresh: PropTypes.func,
     onVote: PropTypes.func,
+    
   };
 
   state = {

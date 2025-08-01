@@ -123,26 +123,67 @@ class AccountSearchService < BaseService
     end
   end
 
-  class FullQueryBuilder < QueryBuilder
+  class HybridQueryBuilder < QueryBuilder
+
     private
 
     def core_query
+      terms = @query.split
+      if terms.size == 1
+        fuzzy_single_term_query(@query)
+      elsif terms.last.length < 2
+        bool_prefix_query
+      else
+        fuzzy_multi_term_query(@query)
+      end
+    end
+
+    def fuzzy_single_term_query(q)
+      {
+        multi_match: {
+          query: q,
+          type: 'best_fields',
+          fields: %w(username^2 username.autocomplete display_name^2 display_name.autocomplete text text.stemmed),
+          fuzziness: 'AUTO',
+          prefix_length: 0,
+          max_expansions: 50,
+          operator: 'and'
+        }
+      }
+    end
+
+    def fuzzy_multi_term_query(q)
+      {
+        multi_match: {
+          query: q,
+          type: 'most_fields',
+          fields: %w(username^2 username.autocomplete display_name^2 display_name.autocomplete text text.stemmed),
+          fuzziness: 'AUTO',
+          prefix_length: 0,
+          max_expansions: 50,
+          operator: 'and'
+        }
+      }
+    end
+
+    def bool_prefix_query
       {
         multi_match: {
           query: @query,
-          type: 'best_fields',
-          fields: %w(username^2 display_name^2 text text.*),
+          type: 'bool_prefix',
+          fields: %w(username^2 username.autocomplete display_name^2 display_name.autocomplete text text.stemmed),
           operator: 'and',
-        },
+          minimum_should_match: '1<75%'
+        }
       }
     end
   end
 
   def call(query, account = nil, options = {})
     MastodonOTELTracer.in_span('AccountSearchService#call') do |span|
-      @query   = query&.strip&.gsub(/\A@/, '')
-      @limit   = options[:limit].to_i
-      @offset  = options[:offset].to_i
+      @query = query&.strip&.gsub(/\A@/, '')
+      @limit = options[:limit].to_i
+      @offset = options[:offset].to_i
       @options = options
       @account = account
 
@@ -188,10 +229,10 @@ class AccountSearchService < BaseService
     return [] if limit_for_non_exact_results.zero?
 
     @search_results ||= begin
-      results = from_elasticsearch if Chewy.enabled?
-      results ||= from_database
-      results
-    end
+                          results = from_elasticsearch if Chewy.enabled?
+                          results ||= from_database
+                          results
+                        end
   end
 
   def from_database
@@ -212,12 +253,12 @@ class AccountSearchService < BaseService
 
   def from_elasticsearch
     query_builder = begin
-      if options[:use_searchable_text]
-        FullQueryBuilder.new(terms_for_query, account, options.slice(:following))
-      else
-        AutocompleteQueryBuilder.new(terms_for_query, account, options.slice(:following))
-      end
-    end
+                      if options[:use_searchable_text]
+                        HybridQueryBuilder.new(query, account, options.slice(:following))
+                      else
+                        AutocompleteQueryBuilder.new(terms_for_query, account, options.slice(:following))
+                      end
+                    end
 
     records = query_builder.build.limit(limit_for_non_exact_results).offset(offset).objects.compact
 

@@ -49,7 +49,11 @@ import {
   COMPOSE_CHANGE_MEDIA_FOCUS,
   COMPOSE_CHANGE_MEDIA_ORDER,
   COMPOSE_SET_STATUS,
+  COMPOSE_QUOTE,
   COMPOSE_FOCUS,
+  COMPOSE_SCHEDULED_POST_ADD_REQUEST,
+  COMPOSE_SCHEDULED_POST_ADD_SUCCESS,
+  COMPOSE_SCHEDULED_POST_ADD_FAIL,
 } from '../actions/compose';
 import { REDRAFT } from '../actions/statuses';
 import { STORE_HYDRATE } from '../actions/store';
@@ -69,8 +73,12 @@ const initialState = ImmutableMap({
   caretPosition: null,
   preselectDate: null,
   in_reply_to: null,
+  quote_status: null,
   is_composing: false,
   is_submitting: false,
+  is_schedule_submitting: false,
+  scheduledDateTime: '',
+  showScheduleInput: false,
   is_changing_upload: false,
   is_uploading: false,
   progress: 0,
@@ -119,8 +127,12 @@ function clearAll(state) {
     map.set('spoiler', false);
     map.set('spoiler_text', '');
     map.set('is_submitting', false);
+    map.set('scheduledDateTime', '');
+    map.set('showScheduleInput', false);
+    map.set('is_schedule_submitting', false);
     map.set('is_changing_upload', false);
     map.set('in_reply_to', null);
+    map.set('quote_status', null);
     map.set('privacy', state.get('default_privacy'));
     map.set('sensitive', state.get('default_sensitive'));
     map.set('language', state.get('default_language'));
@@ -254,12 +266,26 @@ const expiresInFromExpiresAt = expires_at => {
 
 const mergeLocalHashtagResults = (suggestions, prefix, tagHistory) => {
   prefix = prefix.toLowerCase();
+
   if (suggestions.length < 4) {
     const localTags = tagHistory.filter(tag => tag.toLowerCase().startsWith(prefix) && !suggestions.some(suggestion => suggestion.type === 'hashtag' && suggestion.name.toLowerCase() === tag.toLowerCase()));
-    return suggestions.concat(localTags.slice(0, 4 - suggestions.length).toJS().map(tag => ({ type: 'hashtag', name: tag })));
-  } else {
-    return suggestions;
+    suggestions = suggestions.concat(localTags.slice(0, 4 - suggestions.length).toJS().map(tag => ({ type: 'hashtag', name: tag })));
   }
+
+  // Prefer capitalization from personal history, unless personal history is all lower-case
+  const fixSuggestionCapitalization = (suggestion) => {
+    if (suggestion.type !== 'hashtag')
+      return suggestion;
+
+    const tagFromHistory = tagHistory.find((tag) => tag.localeCompare(suggestion.name, undefined, { sensitivity: 'accent' }) === 0);
+
+    if (!tagFromHistory || tagFromHistory.toLowerCase() === tagFromHistory)
+      return suggestion;
+
+    return { ...suggestion, name: tagFromHistory };
+  };
+
+  return suggestions.map(fixSuggestionCapitalization);
 };
 
 const normalizeSuggestions = (state, { accounts, emojis, tags, token }) => {
@@ -293,6 +319,9 @@ const updatePoll = (state, index, value, maxOptions) => state.updateIn(['poll', 
 
   return tmp;
 });
+
+export const COMPOSE_SCHEDULE_DATETIME_CHANGE = 'COMPOSE_SCHEDULE_DATETIME_CHANGE';
+export const COMPOSE_SCHEDULE_INPUT_SHOW = 'COMPOSE_SCHEDULE_INPUT_SHOW';
 
 export default function compose(state = initialState, action) {
   switch(action.type) {
@@ -333,6 +362,8 @@ export default function compose(state = initialState, action) {
   case COMPOSE_CHANGE:
     return state
       .set('text', action.text)
+      .set('caretPosition', action.caretPosition !== undefined ? action.caretPosition : null)
+      .set('focusDate', action.caretPosition !== undefined ? new Date() : state.get('focusDate'))
       .set('idempotencyKey', uuid());
   case COMPOSE_COMPOSING_CHANGE:
     return state.set('is_composing', action.value);
@@ -355,18 +386,19 @@ export default function compose(state = initialState, action) {
         map.set('language', state.get('default_language'));
       }
 
-      if (action.status.get('spoiler_text').length > 0) {
-        map.set('spoiler', true);
-        map.set('spoiler_text', action.status.get('spoiler_text'));
-
-        if (map.get('media_attachments').size >= 1) {
-          map.set('sensitive', true);
-        }
-      } else {
-        map.set('spoiler', false);
-        map.set('spoiler_text', '');
-      }
+      map.set('spoiler', false);
+      map.set('spoiler_text', '');
     });
+  case COMPOSE_SCHEDULE_DATETIME_CHANGE:
+    return state.set('scheduledDateTime', action.value);
+  case COMPOSE_SCHEDULE_INPUT_SHOW:
+    return state.set('showScheduleInput', action.value);
+  case COMPOSE_SCHEDULED_POST_ADD_REQUEST:
+    return state.set('is_schedule_submitting', true);
+  case COMPOSE_SCHEDULED_POST_ADD_SUCCESS:
+    return clearAll(state);
+  case COMPOSE_SCHEDULED_POST_ADD_FAIL:
+    return state.set('is_schedule_submitting', false);
   case COMPOSE_SUBMIT_REQUEST:
     return state.set('is_submitting', true);
   case COMPOSE_UPLOAD_CHANGE_REQUEST:
@@ -536,8 +568,12 @@ export default function compose(state = initialState, action) {
     return state.update('poll', poll => poll.set('expires_in', action.expiresIn).set('multiple', action.isMultiple));
   case COMPOSE_LANGUAGE_CHANGE:
     return state.set('language', action.language);
+  case COMPOSE_QUOTE:
+    return state.set('quote_status', action.status);
   case COMPOSE_FOCUS:
-    return state.set('focusDate', new Date()).update('text', text => text.length > 0 ? text : action.defaultText);
+    return state
+      .set('focusDate', new Date())
+      .update('text', text => text.length > 0 ? text : action.defaultText);
   case COMPOSE_CHANGE_MEDIA_ORDER:
     return state.update('media_attachments', list => {
       const indexA = list.findIndex(x => x.get('id') === action.a);

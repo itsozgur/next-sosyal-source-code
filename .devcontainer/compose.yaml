@@ -1,11 +1,11 @@
 services:
   app:
-    working_dir: /workspaces/mastodon/
+    working_dir: /workspaces/next-social/
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
     volumes:
-      - ..:/workspaces/mastodon:cached
+      - ..:/workspaces/next-social:delegated
     environment:
       RAILS_ENV: development
       NODE_ENV: development
@@ -20,6 +20,8 @@ services:
       ES_HOST: es
       ES_PORT: '9200'
       LIBRE_TRANSLATE_ENDPOINT: http://libretranslate:5000
+      CHOKIDAR_USEPOLLING: 'true'
+      WATCHPACK_POLLING: 'true'
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
     ports:
@@ -40,7 +42,10 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5433:5432
     networks:
+      - external_network
       - internal_network
 
   redis:

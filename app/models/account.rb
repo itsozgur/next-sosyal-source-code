@@ -12,7 +12,7 @@
 #  created_at                    :datetime         not null
 #  updated_at                    :datetime         not null
 #  note                          :text             default(""), not null
-#  display_name                  :string           default(""), not null
+#  display_name                  :string(100)      default(""), not null
 #  uri                           :string           default(""), not null
 #  url                           :string
 #  avatar_file_name              :string
@@ -44,8 +44,8 @@
 #  hide_collections              :boolean
 #  avatar_storage_schema_version :integer
 #  header_storage_schema_version :integer
-#  suspension_origin             :integer
 #  sensitized_at                 :datetime
+#  suspension_origin             :integer
 #  trendable                     :boolean
 #  reviewed_at                   :datetime
 #  requested_review_at           :datetime
@@ -73,7 +73,7 @@ class Account < ApplicationRecord
   URL_PREFIX_RE = %r{\Ahttp(s?)://[^/]+}
   USERNAME_ONLY_RE = /\A#{USERNAME_RE}\z/i
   USERNAME_LENGTH_LIMIT = 30
-  DISPLAY_NAME_LENGTH_LIMIT = 30
+  DISPLAY_NAME_LENGTH_LIMIT = 60
   NOTE_LENGTH_LIMIT = 500
 
   AUTOMATED_ACTOR_TYPES = %w(Application Service).freeze
@@ -149,7 +149,7 @@ class Account < ApplicationRecord
   scope :not_excluded_by_account, ->(account) { where.not(id: account.excluded_from_timeline_account_ids) }
   scope :not_domain_blocked_by_account, ->(account) { where(arel_table[:domain].eq(nil).or(arel_table[:domain].not_in(account.excluded_from_timeline_domains))) }
   scope :dormant, -> { joins(:account_stat).merge(AccountStat.without_recent_activity) }
-  scope :with_username, ->(value) { where arel_table[:username].lower.eq(value.to_s.downcase) }
+  scope :with_username, ->(value) { value.is_a?(Array) ? where(arel_table[:username].lower.in(value.map { |x| x.to_s.downcase })) : where(arel_table[:username].lower.eq(value.to_s.downcase)) }
   scope :with_domain, ->(value) { where arel_table[:domain].lower.eq(value&.to_s&.downcase) }
   scope :without_memorial, -> { where(memorial: false) }
   scope :duplicate_uris, -> { select(:uri, Arel.star.count).group(:uri).having(Arel.star.count.gt(1)) }

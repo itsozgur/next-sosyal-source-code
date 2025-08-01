@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_14_084547) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["account_id", "uri"], name: "index_account_aliases_on_account_id_and_uri", unique: true
     t.index ["account_id"], name: "index_account_aliases_on_account_id"
+  end
+
+  create_table "account_badges", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "badge_id", null: false
+    t.datetime "awarded_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "badge_id"], name: "index_account_badges_on_account_id_and_badge_id", unique: true
+    t.index ["awarded_at"], name: "index_account_badges_on_awarded_at"
+    t.index ["badge_id"], name: "index_account_badges_on_badge_id"
   end
 
   create_table "account_conversations", force: :cascade do |t|
@@ -161,7 +172,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.text "note", default: "", null: false
-    t.string "display_name", default: "", null: false
+    t.string "display_name", limit: 100, default: "", null: false
     t.string "uri", default: "", null: false
     t.string "url"
     t.string "avatar_file_name"
@@ -288,6 +299,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "updated_at", precision: nil, null: false
     t.bigint "dump_file_size"
     t.index ["user_id"], name: "index_backups_on_user_id"
+  end
+
+  create_table "badges", force: :cascade do |t|
+    t.string "icon", null: false
+    t.string "name", default: "", null: false
+    t.integer "rank", null: false
+    t.integer "order", default: 0, null: false
+    t.boolean "is_active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_active"], name: "index_badges_on_is_active"
+    t.index ["name"], name: "index_badges_on_name"
+    t.index ["order"], name: "index_badges_on_order"
+    t.index ["rank"], name: "index_badges_on_rank", unique: true
   end
 
   create_table "blocks", force: :cascade do |t|
@@ -1011,6 +1036,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.bigint "favourites_count", default: 0, null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.integer "views_count"
+    t.bigint "quotes_count", default: 0, null: false
     t.index ["status_id"], name: "index_status_stats_on_status_id", unique: true
   end
 
@@ -1023,6 +1050,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.string "language"
     t.index ["account_id"], name: "index_status_trends_on_account_id"
     t.index ["status_id"], name: "index_status_trends_on_status_id", unique: true
+  end
+
+  create_table "status_views", force: :cascade do |t|
+    t.bigint "account_id"
+    t.bigint "status_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "status_id"], name: "index_status_views_on_account_id_and_status_id", unique: true
+    t.index ["account_id"], name: "index_status_views_on_account_id"
+    t.index ["status_id"], name: "index_status_views_on_status_id"
   end
 
   create_table "statuses", id: :bigint, default: -> { "timestamp_id('statuses'::text)" }, force: :cascade do |t|
@@ -1048,6 +1085,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.datetime "edited_at", precision: nil
     t.boolean "trendable"
     t.bigint "ordered_media_attachment_ids", array: true
+    t.integer "view_count"
+    t.bigint "quoted_status_id"
     t.index ["account_id", "id", "visibility", "updated_at"], name: "index_statuses_20190820", order: { id: :desc }, where: "(deleted_at IS NULL)"
     t.index ["account_id"], name: "index_statuses_on_account_id"
     t.index ["deleted_at"], name: "index_statuses_on_deleted_at", where: "(deleted_at IS NOT NULL)"
@@ -1055,6 +1094,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
     t.index ["id", "account_id"], name: "index_statuses_public_20200119", order: { id: :desc }, where: "((deleted_at IS NULL) AND (visibility = 0) AND (reblog_of_id IS NULL) AND ((NOT reply) OR (in_reply_to_account_id = account_id)))"
     t.index ["in_reply_to_account_id"], name: "index_statuses_on_in_reply_to_account_id", where: "(in_reply_to_account_id IS NOT NULL)"
     t.index ["in_reply_to_id"], name: "index_statuses_on_in_reply_to_id", where: "(in_reply_to_id IS NOT NULL)"
+    t.index ["quoted_status_id"], name: "index_statuses_on_quoted_status_id"
     t.index ["reblog_of_id", "account_id"], name: "index_statuses_on_reblog_of_id_and_account_id"
     t.index ["uri"], name: "index_statuses_on_uri", unique: true, opclass: :text_pattern_ops, where: "(uri IS NOT NULL)"
   end
@@ -1217,6 +1257,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
   end
 
   add_foreign_key "account_aliases", "accounts", on_delete: :cascade
+  add_foreign_key "account_badges", "accounts", on_delete: :cascade
+  add_foreign_key "account_badges", "badges", on_delete: :cascade
   add_foreign_key "account_conversations", "accounts", on_delete: :cascade
   add_foreign_key "account_conversations", "conversations", on_delete: :cascade
   add_foreign_key "account_deletion_requests", "accounts", on_delete: :cascade
@@ -1330,6 +1372,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
   add_foreign_key "status_stats", "statuses", on_delete: :cascade
   add_foreign_key "status_trends", "accounts", on_delete: :cascade
   add_foreign_key "status_trends", "statuses", on_delete: :cascade
+  add_foreign_key "status_views", "accounts"
+  add_foreign_key "status_views", "statuses"
   add_foreign_key "statuses", "accounts", column: "in_reply_to_account_id", name: "fk_c7fa917661", on_delete: :nullify
   add_foreign_key "statuses", "accounts", name: "fk_9bda1543f7", on_delete: :cascade
   add_foreign_key "statuses", "statuses", column: "in_reply_to_id", on_delete: :nullify
@@ -1375,9 +1419,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
   add_index "instances", ["domain"], name: "index_instances_on_domain", unique: true
 
   create_view "user_ips", sql_definition: <<-SQL
-      SELECT user_id,
-      ip,
-      max(used_at) AS used_at
+      SELECT t0.user_id,
+      t0.ip,
+      max(t0.used_at) AS used_at
      FROM ( SELECT users.id AS user_id,
               users.sign_up_ip AS ip,
               users.created_at AS used_at
@@ -1394,7 +1438,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
               login_activities.created_at
              FROM login_activities
             WHERE (login_activities.success = true)) t0
-    GROUP BY user_id, ip;
+    GROUP BY t0.user_id, t0.ip;
   SQL
   create_view "account_summaries", materialized: true, sql_definition: <<-SQL
       SELECT accounts.id AS account_id,
@@ -1415,9 +1459,9 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
   add_index "account_summaries", ["account_id"], name: "index_account_summaries_on_account_id", unique: true
 
   create_view "global_follow_recommendations", materialized: true, sql_definition: <<-SQL
-      SELECT account_id,
-      sum(rank) AS rank,
-      array_agg(reason) AS reason
+      SELECT t0.account_id,
+      sum(t0.rank) AS rank,
+      array_agg(t0.reason) AS reason
      FROM ( SELECT account_summaries.account_id,
               ((count(follows.id))::numeric / (1.0 + (count(follows.id))::numeric)) AS rank,
               'most_followed'::text AS reason
@@ -1441,8 +1485,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_10_07_071624) do
                     WHERE (follow_recommendation_suppressions.account_id = statuses.account_id)))))
             GROUP BY account_summaries.account_id
            HAVING (sum((status_stats.reblogs_count + status_stats.favourites_count)) >= (5)::numeric)) t0
-    GROUP BY account_id
-    ORDER BY (sum(rank)) DESC;
+    GROUP BY t0.account_id
+    ORDER BY (sum(t0.rank)) DESC;
   SQL
   add_index "global_follow_recommendations", ["account_id"], name: "index_global_follow_recommendations_on_account_id", unique: true
 

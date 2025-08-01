@@ -13,6 +13,7 @@ class Api::V1::Instances::LanguagesController < Api::V1::Instances::BaseControll
   private
 
   def set_languages
-    @languages = LanguagesHelper::SUPPORTED_LOCALES.keys.map { |code| LanguagePresenter.new(code) }
+    # @languages = LanguagesHelper::SUPPORTED_LOCALES.keys.map { |code| LanguagePresenter.new(code) }
+    @languages = [:tr, :en].map { |code| LanguagePresenter.new(code) }
   end
 end

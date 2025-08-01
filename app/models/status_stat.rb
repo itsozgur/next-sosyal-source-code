@@ -11,6 +11,8 @@
 #  favourites_count :bigint(8)        default(0), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
+#  views_count      :integer
+#  quotes_count     :bigint(8)        default(0), not null
 #
 
 class StatusStat < ApplicationRecord
@@ -26,5 +28,17 @@ class StatusStat < ApplicationRecord
 
   def favourites_count
     [attributes['favourites_count'], 0].max
+  end
+
+  def views_count
+    [attributes['views_count'].to_i, 0].max
+  end
+
+  def quotes_count
+    [attributes['quotes_count'], 0].max
+  end
+
+  def interactions_count
+    replies_count + reblogs_count + favourites_count + quotes_count
   end
 end

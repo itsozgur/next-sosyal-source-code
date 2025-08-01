@@ -1,10 +1,10 @@
 ---
 en-GB:
   about:
-    about_mastodon_html: 'The social network of the future: No ads, no corporate surveillance, ethical design, and decentralisation! Own your data with Mastodon!'
+    about_mastodon_html: 'The social network of the future: No ads, no corporate surveillance, ethical design, and decentralisation! Own your data with %{APP_NAME}!'
     contact_missing: Not set
     contact_unavailable: N/A
-    hosted_on: Mastodon hosted on %{domain}
+    hosted_on: "%{APP_NAME} hosted on %{domain}"
     title: About
   accounts:
     followers:
@@ -1694,7 +1694,7 @@ en-GB:
     aliases: Account aliases
     appearance: Appearance
     authorized_apps: Authorised apps
-    back: Back to Mastodon
+    back: Back to %{APP_NAME}
     delete: Account deletion
     development: Development
     edit_profile: Edit profile

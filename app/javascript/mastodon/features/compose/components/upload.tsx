@@ -9,7 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 import CloseIcon from '@/material-icons/400-20px/close.svg?react';
 import EditIcon from '@/material-icons/400-24px/edit.svg?react';
-import WarningIcon from '@/material-icons/400-24px/warning.svg?react';
+import InfoIcon from '@/material-icons/400-24px/info.svg?react';
 import {
   undoUploadCompose,
   initMediaEditModal,
@@ -103,6 +103,7 @@ export const Upload: React.FC<{
           >
             <Icon id='close' icon={CloseIcon} />
           </button>
+          {/* 
           <button
             type='button'
             className='icon-button'
@@ -111,6 +112,7 @@ export const Upload: React.FC<{
             <Icon id='edit' icon={EditIcon} />{' '}
             <FormattedMessage id='upload_form.edit' defaultMessage='Edit' />
           </button>
+          */}
         </div>
 
         <div className='compose-form__upload__warning'>
@@ -121,7 +123,7 @@ export const Upload: React.FC<{
             })}
             onClick={handleFocalPointClick}
           >
-            {missingDescription && <Icon id='warning' icon={WarningIcon} />} ALT
+            {missingDescription && <Icon id='warning' icon={InfoIcon} />} ALT
           </button>
         </div>
       </div>

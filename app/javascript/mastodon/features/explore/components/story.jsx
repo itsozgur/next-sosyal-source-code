@@ -46,14 +46,25 @@ export const Story = ({
     setThumbnailLoaded(true);
   }, [setThumbnailLoaded]);
 
+  const extractDomainFromUrl = (url) => {
+    try {
+      const domain = new URL(url).hostname;
+      return domain.replace('www.', '');
+    } catch {
+      return url;
+    }
+  };
+
+  const displayPublisher = publisher || extractDomainFromUrl(url);
+
   return (
     <div className={classNames('story', { expanded })}>
       <div className='story__details'>
         <div className='story__details__publisher'>
-          {publisher ? <span lang={lang}>{publisher}</span> : <Skeleton width={50} />}{publishedAt && <> · <RelativeTimestamp timestamp={publishedAt} /></>}
+          {displayPublisher ? <span lang={lang}>{displayPublisher}</span> : <Skeleton width={50} />}{publishedAt && <> · <RelativeTimestamp timestamp={publishedAt} /></>}
         </div>
 
-        <a className='story__details__title' lang={lang} href={url} target='blank' rel='noopener'>
+        <a className='story__details__title' lang={lang} href={url} target='blank' rel='noopener' data-testid="story-story__details__title-a">
           {title ? title : <Skeleton />}
         </a>
 
@@ -63,7 +74,7 @@ export const Story = ({
         </div>
       </div>
 
-      <a className='story__thumbnail' href={url} target='blank' rel='noopener'>
+      <a className='story__thumbnail' href={url} target='blank' rel='noopener' data-testid="story-story__thumbnail-a">
         {thumbnail ? (
           <>
             <div className={classNames('story__thumbnail__preview', { 'story__thumbnail__preview--hidden': thumbnailLoaded })}><Blurhash hash={blurhash} /></div>

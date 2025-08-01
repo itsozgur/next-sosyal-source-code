@@ -7,6 +7,7 @@
   - [mailers, 2]
   - [pull]
   - [scheduler]
+  - [views, 4]
 
 :scheduler:
   :listened_queues_only: true
@@ -16,7 +17,7 @@
       class: Scheduler::ScheduledStatusesScheduler
       queue: scheduler
     trends_refresh_scheduler:
-      every: '5m'
+      every: '45m'
       class: Scheduler::Trends::RefreshScheduler
       queue: scheduler
     trends_review_notifications_scheduler:

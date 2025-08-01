@@ -24,9 +24,10 @@ import { countableText } from '../util/counter';
 
 import { CharacterCounter } from './character_counter';
 import { EditIndicator } from './edit_indicator';
-import { NavigationBar } from './navigation_bar';
 import { PollForm } from "./poll_form";
+import QuoteIndicator from './quote_indicator';
 import { ReplyIndicator } from './reply_indicator';
+import ScheduleDropdown from './schedule_dropdown';
 import { UploadForm } from './upload_form';
 
 const allowedAroundShortCode = '><\u0085\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029\u0009\u000a\u000b\u000c\u000d';
@@ -37,7 +38,16 @@ const messages = defineMessages({
   publish: { id: 'compose_form.publish', defaultMessage: 'Post' },
   saveChanges: { id: 'compose_form.save_changes', defaultMessage: 'Update' },
   reply: { id: 'compose_form.reply', defaultMessage: 'Reply' },
+  schedule: { id: 'compose_form.schedule', defaultMessage: 'Planla' },
+  dateTimePlaceholder: { id: 'compose_form.datetime_placeholder', defaultMessage: 'Tarih Seçiniz' },
+  scheduleTooSoon: { id: 'compose_form.schedule_too_soon', defaultMessage: 'Minimum 5 dakika sonrası için planlayabilirsiniz' },
 });
+
+// Backend MIN_SCHEDULE_OFFSET is 5 minutes
+const MIN_SCHEDULE_OFFSET_MINUTES = 5;
+
+// Add Mastodon status URL pattern detection
+const MASTODON_STATUS_URL_REGEX = /https?:\/\/[^\s/]+\/@[^\s/]+\/\d+/g;
 
 class ComposeForm extends ImmutablePureComponent {
   static propTypes = {
@@ -51,6 +61,7 @@ class ComposeForm extends ImmutablePureComponent {
     caretPosition: PropTypes.number,
     preselectDate: PropTypes.instanceOf(Date),
     isSubmitting: PropTypes.bool,
+    isScheduleSubmitting: PropTypes.bool,
     isChangingUpload: PropTypes.bool,
     isEditing: PropTypes.bool,
     isUploading: PropTypes.bool,
@@ -62,13 +73,21 @@ class ComposeForm extends ImmutablePureComponent {
     onChangeSpoilerText: PropTypes.func.isRequired,
     onPaste: PropTypes.func.isRequired,
     onPickEmoji: PropTypes.func.isRequired,
+    onSchedule: PropTypes.func.isRequired,
     autoFocus: PropTypes.bool,
     withoutNavigation: PropTypes.bool,
     anyMedia: PropTypes.bool,
     isInReply: PropTypes.bool,
+    quoteStatus: ImmutablePropTypes.map,
     singleColumn: PropTypes.bool,
     lang: PropTypes.string,
     maxChars: PropTypes.number,
+    onGetScheduledPosts: PropTypes.func,
+    scheduledDateTime: PropTypes.string,
+    showScheduleInput: PropTypes.bool,
+    onScheduleDateTimeChange: PropTypes.func,
+    onScheduleInputShow: PropTypes.func,
+    onOpenMedia: PropTypes.func,
   };
 
   static defaultProps = {
@@ -84,8 +103,47 @@ class ComposeForm extends ImmutablePureComponent {
     this.textareaRef = createRef(null);
   }
 
+
+  hasQuoteUrl = () => {
+    const { text } = this.props;
+    if (!text) return false;
+    
+
+    MASTODON_STATUS_URL_REGEX.lastIndex = 0;
+    return MASTODON_STATUS_URL_REGEX.test(text);
+  };
+
+
+  getDisplayText = () => {
+    const { text } = this.props;
+    if (!text) return '';
+    
+    return text.replace(MASTODON_STATUS_URL_REGEX, '');
+  };
+
   handleChange = (e) => {
-    this.props.onChange(e.target.value);
+    const newText = e.target.value;
+    
+    if (this.props.quoteStatus) {
+      this.props.onChange(newText);
+      return;
+    }
+    
+    const { text } = this.props;
+    if (this.hasQuoteUrl()) {
+
+      const quoteUrlMatch = text.match(MASTODON_STATUS_URL_REGEX);
+      const quoteUrl = quoteUrlMatch ? quoteUrlMatch[0] : '';
+      
+      if (newText.includes(quoteUrl)) {
+        this.props.onChange(newText);
+      } else {
+        const finalText = newText ? `${newText}\n\n${quoteUrl}` : `\n\n${quoteUrl}`;
+        this.props.onChange(finalText);
+      }
+    } else {
+      this.props.onChange(newText);
+    }
   };
 
   handleKeyDown = (e) => {
@@ -95,21 +153,38 @@ class ComposeForm extends ImmutablePureComponent {
   };
 
   getFulltextForCharacterCounting = () => {
-    return [this.props.spoiler? this.props.spoilerText: '', countableText(this.props.text)].join('');
+    return [this.props.spoiler ? this.props.spoilerText : '', countableText(this.props.text)].join('');
   };
 
   canSubmit = () => {
-    const { isSubmitting, isChangingUpload, isUploading, anyMedia, maxChars } = this.props;
+    const { isSubmitting, isScheduleSubmitting, isChangingUpload, isUploading, anyMedia, maxChars, scheduledDateTime } = this.props;
     const fulltext = this.getFulltextForCharacterCounting();
     const isOnlyWhitespace = fulltext.length !== 0 && fulltext.trim().length === 0;
 
-    return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > maxChars || (isOnlyWhitespace && !anyMedia));
+ 
+    let isScheduledTimeTooSoon = false;
+    if (scheduledDateTime) {
+      const selectedDate = new Date(scheduledDateTime);
+      const minDate = new Date(Date.now() + MIN_SCHEDULE_OFFSET_MINUTES * 60000);
+      isScheduledTimeTooSoon = selectedDate < minDate;
+    }
+
+    return !(isSubmitting || isScheduleSubmitting || isUploading || isChangingUpload || length(fulltext) > maxChars || (isOnlyWhitespace && !anyMedia) || isScheduledTimeTooSoon);
+  };
+
+  handleScheduleClick = () => {
+    this.props.onScheduleInputShow(true);
+  };
+
+  handleViewScheduledPosts = () => {
+    const { onGetScheduledPosts } = this.props;
+    if (onGetScheduledPosts) {
+      onGetScheduledPosts();
+    }
   };
 
   handleSubmit = (e) => {
     if (this.props.text !== this.textareaRef.current.value) {
-      // Something changed the text inside the textarea (e.g. browser extensions like Grammarly)
-      // Update the state to match the current text
       this.props.onChange(this.textareaRef.current.value);
     }
 
@@ -117,10 +192,16 @@ class ComposeForm extends ImmutablePureComponent {
       return;
     }
 
-    this.props.onSubmit();
-
     if (e) {
       e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (this.props.scheduledDateTime) {
+      const scheduledAt = new Date(this.props.scheduledDateTime).toISOString();
+      this.props.onSchedule(scheduledAt);
+    } else {
+      this.props.onSubmit();
     }
   };
 
@@ -153,48 +234,39 @@ class ComposeForm extends ImmutablePureComponent {
     }
   };
 
-  componentDidMount () {
-    this._updateFocusAndSelection({ });
+  componentDidMount() {
+    this._updateFocusAndSelection({});
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     if (this.timeout) clearTimeout(this.timeout);
   }
-
-  componentDidUpdate (prevProps) {
+  componentDidUpdate(prevProps) {
     this._updateFocusAndSelection(prevProps);
   }
 
   _updateFocusAndSelection = (prevProps) => {
-    // This statement does several things:
-    // - If we're beginning a reply, and,
-    //     - Replying to zero or one users, places the cursor at the end of the textbox.
-    //     - Replying to more than one user, selects any usernames past the first;
-    //       this provides a convenient shortcut to drop everyone else from the conversation.
     if (this.props.focusDate && this.props.focusDate !== prevProps.focusDate) {
       let selectionEnd, selectionStart;
 
       if (this.props.preselectDate !== prevProps.preselectDate && this.props.isInReply) {
-        selectionEnd   = this.props.text.length;
+        selectionEnd = this.props.text.length;
         selectionStart = this.props.text.search(/\s/) + 1;
       } else if (typeof this.props.caretPosition === 'number') {
         selectionStart = this.props.caretPosition;
-        selectionEnd   = this.props.caretPosition;
+        selectionEnd = this.props.caretPosition;
       } else {
-        selectionEnd   = this.props.text.length;
+        selectionEnd = this.props.text.length;
         selectionStart = selectionEnd;
       }
 
-      // Because of the wicg-inert polyfill, the activeElement may not be
-      // immediately selectable, we have to wait for observers to run, as
-      // described in https://github.com/WICG/inert#performance-and-gotchas
       Promise.resolve().then(() => {
         this.textareaRef.current.setSelectionRange(selectionStart, selectionEnd);
         this.textareaRef.current.focus();
         this.setState({ highlighted: true });
         this.timeout = setTimeout(() => this.setState({ highlighted: false }), 700);
       }).catch(console.error);
-    } else if(prevProps.isSubmitting && !this.props.isSubmitting) {
+    } else if (prevProps.isSubmitting && !this.props.isSubmitting) {
       this.textareaRef.current.focus();
     } else if (this.props.spoiler !== prevProps.spoiler) {
       if (this.props.spoiler) {
@@ -214,22 +286,64 @@ class ComposeForm extends ImmutablePureComponent {
   };
 
   handleEmojiPick = (data) => {
-    const { text }     = this.props;
-    const position     = this.textareaRef.current.selectionStart;
-    const needsSpace   = data.custom && position > 0 && !allowedAroundShortCode.includes(text[position - 1]);
+    const { text } = this.props;
+    const position = this.textareaRef.current.selectionStart;
+    const needsSpace = data.custom && position > 0 && !allowedAroundShortCode.includes(text[position - 1]);
 
     this.props.onPickEmoji(position, data, needsSpace);
   };
 
-  render () {
-    const { intl, onPaste, autoFocus, withoutNavigation, maxChars } = this.props;
+  handleScheduleDateTimeChange = (e) => {
+    const value = e.target.value;
+    
+    // Check if selected time is too soon and auto-correct it
+    if (value) {
+      const selectedDate = new Date(value);
+      const minDate = new Date(Date.now() + MIN_SCHEDULE_OFFSET_MINUTES * 60000);
+      
+      if (selectedDate < minDate) {
+        // Don't auto-correct, let user see the error
+        this.props.onScheduleDateTimeChange(value);
+        return;
+      }
+    }
+    
+    this.props.onScheduleDateTimeChange(value);
+  };
+
+  handleClearDateTime = () => {
+    this.props.onScheduleDateTimeChange('');
+  };
+
+  handleApplyDateTime = () => {
+    this.props.onScheduleInputShow(false);
+  };
+
+  getMinDateTime = () => {
+    // Use the same minimum offset as backend (5 minutes)
+    return new Date(Date.now() + MIN_SCHEDULE_OFFSET_MINUTES * 60000).toISOString().slice(0, 16);
+  };
+
+  isScheduledTimeTooSoon = () => {
+    const { scheduledDateTime } = this.props;
+    if (!scheduledDateTime) return false;
+    
+    const selectedDate = new Date(scheduledDateTime);
+    const minDate = new Date(Date.now() + MIN_SCHEDULE_OFFSET_MINUTES * 60000);
+    return selectedDate < minDate;
+  };
+
+  render() {
+    const { intl, onPaste, autoFocus, maxChars, isScheduleSubmitting, scheduledDateTime, showScheduleInput, quoteStatus } = this.props;
     const { highlighted } = this.state;
-    const disabled = this.props.isSubmitting;
+    const disabled = this.props.isSubmitting || (scheduledDateTime && isScheduleSubmitting);
+    
+    // Detect quote: either explicit quote status OR URL pattern in text
+    const hasQuote = !!quoteStatus || this.hasQuoteUrl();
 
     return (
-      <form className='compose-form' onSubmit={this.handleSubmit}>
+      <form className={classNames('compose-form', { 'compose-form--with-quote': hasQuote })} onSubmit={this.handleSubmit} id='mastodon-compose-form'>
         <ReplyIndicator />
-        {!withoutNavigation && <NavigationBar />}
         <WarningContainer />
 
         <div className={classNames('compose-form__highlightable', { active: highlighted })} ref={this.setRef}>
@@ -262,46 +376,105 @@ class ComposeForm extends ImmutablePureComponent {
               </div>
             )}
 
-            <AutosuggestTextarea
-              ref={this.textareaRef}
-              placeholder={intl.formatMessage(messages.placeholder)}
-              disabled={disabled}
-              value={this.props.text}
-              onChange={this.handleChange}
-              suggestions={this.props.suggestions}
-              onFocus={this.handleFocus}
-              onKeyDown={this.handleKeyDown}
-              onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-              onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-              onSuggestionSelected={this.onSuggestionSelected}
-              onPaste={onPaste}
-              autoFocus={autoFocus}
-              lang={this.props.lang}
-            />
+            <div className='compose-form__autosuggest-wrapper' id='mastodon-compose-textarea'>
+              <AutosuggestTextarea
+                ref={this.textareaRef}
+                placeholder={intl.formatMessage(messages.placeholder)}
+                disabled={disabled}
+                value={hasQuote ? this.getDisplayText() : this.props.text}
+                onChange={this.handleChange}
+                suggestions={this.props.suggestions}
+                onFocus={this.handleFocus}
+                onKeyDown={this.handleKeyDown}
+                onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+                onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+                onSuggestionSelected={this.onSuggestionSelected}
+                onPaste={onPaste}
+                autoFocus={autoFocus}
+                lang={this.props.lang}
+                className={classNames('compose-form__textarea', { 'compose-form__textarea--with-quote': hasQuote })}
+              />
+            </div>
+
+            {(() => {
+              return this.props.quoteStatus && <QuoteIndicator status={this.props.quoteStatus} onOpenMedia={this.props.onOpenMedia} />;
+            })()}
           </div>
 
           <UploadForm />
           <PollForm />
 
           <div className='compose-form__footer'>
-            <div className='compose-form__dropdowns'>
-              <PrivacyDropdownContainer disabled={this.props.isEditing} />
-              <LanguageDropdown />
-            </div>
-
             <div className='compose-form__actions'>
+              {showScheduleInput && (
+                <div className='compose-form__schedule-container'>
+                  <div className='compose-form__schedule-input-wrapper' style={{ width: '100%', display: 'flex', flex: 1 }}>
+                    <input
+                      type='datetime-local'
+                      value={scheduledDateTime || ''}
+                      onChange={this.handleScheduleDateTimeChange}
+                      min={this.getMinDateTime()}
+                      className={classNames('compose-form__schedule-datetime', { 'error': this.isScheduledTimeTooSoon() })}
+                      style={{ 
+                        width: '100%', 
+                        flex: 1,
+                        ...(this.isScheduledTimeTooSoon() && { 
+                          borderColor: '#e87487',
+                          backgroundColor: 'rgba(232, 116, 135, 0.1)'
+                        })
+                      }}
+                      placeholder={intl.formatMessage(messages.dateTimePlaceholder)}
+                      required
+                    />
+                    <span className='compose-form__schedule-icon'>
+                      <i className='fa fa-calendar' />
+                    </span>
+                  </div>
+                  {this.isScheduledTimeTooSoon() && (
+                    <div className='compose-form__schedule-warning' style={{ 
+                      color: '#e87487', 
+                      fontSize: '14px', 
+                      marginTop: '5px',
+                      padding: '5px',
+                      backgroundColor: 'rgba(232, 116, 135, 0.1)',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(232, 116, 135, 0.2)'
+                    }}>
+                      <i className='fa fa-exclamation-triangle' style={{ marginRight: '5px' }} />
+                      {intl.formatMessage(messages.scheduleTooSoon)}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className='compose-form__buttons'>
                 <UploadButtonContainer />
                 <PollButtonContainer />
                 <SpoilerButtonContainer />
                 <EmojiPickerDropdown onPickEmoji={this.handleEmojiPick} />
+                <ScheduleDropdown
+                  onScheduleClick={this.handleScheduleClick}
+                  onViewScheduledPosts={this.handleViewScheduledPosts}
+                />
                 <CharacterCounter max={maxChars} text={this.getFulltextForCharacterCounting()} />
               </div>
 
-              <div className='compose-form__submit'>
+              <div className='compose-form__dropdowns'>
+                <PrivacyDropdownContainer disabled={this.props.isEditing} />
+                <LanguageDropdown />
+              </div>
+
+              <div className='compose-form__submit' id='mastodon-publish-button'>
                 <Button
                   type='submit'
-                  text={intl.formatMessage(this.props.isEditing ? messages.saveChanges : (this.props.isInReply ? messages.reply : messages.publish))}
+                  text={intl.formatMessage(
+                    scheduledDateTime
+                      ? messages.schedule
+                      : this.props.isEditing
+                        ? messages.saveChanges
+                        : this.props.isInReply
+                          ? messages.reply
+                          : messages.publish
+                  )}
                   disabled={!this.canSubmit()}
                 />
               </div>

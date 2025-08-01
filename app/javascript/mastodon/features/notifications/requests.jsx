@@ -133,7 +133,7 @@ const SelectRow = ({selectAllChecked, toggleSelectAll, selectedItems, selectionM
         direction='right'
         title={intl.formatMessage(messages.more)}
       >
-        <button className='dropdown-button column-header__select-row__select-menu' disabled={selectedItems.length === 0}>
+        <button className='dropdown-button column-header__select-row__select-menu' disabled={selectedItems.length === 0} data-testid="requests-dropdown-button">
           <span className='dropdown-button__label'>
             {selectedCount} selected
           </span>
