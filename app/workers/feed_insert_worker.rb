@@ -4,6 +4,8 @@ class FeedInsertWorker
   include Sidekiq::Worker
   include DatabaseHelper
 
+  sidekiq_options queue: 'feedinsert_worker'
+
   def perform(status_id, id, type = 'home', options = {})
     with_primary do
       @type      = type.to_sym

@@ -25,6 +25,9 @@ class Vacuum::StatusesVacuum
         remove_from_index(statuses.ids, 'chewy:queue:PublicStatusesIndex')
       end
 
+      # Delete status_views first to avoid foreign key constraint violations
+      StatusView.where(status_id: statuses.ids).delete_all
+
       # Foreign keys take care of most associated records for us.
       # Media attachments will be orphaned.
       statuses.delete_all

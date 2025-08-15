@@ -650,11 +650,12 @@ const startServer = async () => {
       // The rest of the logic from here on in this function is to handle
       // filtering of statuses:
 
+      // Language filtering disabled - show all posts regardless of language
       // Filter based on language:
-      if (Array.isArray(req.chosenLanguages) && req.chosenLanguages.indexOf(payload.language) === -1) {
-        log.debug(`Message ${payload.id} filtered by language (${payload.language})`);
-        return;
-      }
+      // if (Array.isArray(req.chosenLanguages) && req.chosenLanguages.indexOf(payload.language) === -1) {
+      //   log.debug(`Message ${payload.id} filtered by language (${payload.language})`);
+      //   return;
+      // }
 
       // When the account is not logged in, it is not necessary to confirm the block or mute
       if (!req.accountId) {

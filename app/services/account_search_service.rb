@@ -24,6 +24,7 @@ class AccountSearchService < BaseService
                 bool: {
                   must: must_clauses,
                   must_not: must_not_clauses,
+                  should: exact_should_clauses
                 },
               },
 
@@ -58,6 +59,34 @@ class AccountSearchService < BaseService
       else
         []
       end
+    end
+
+    def parsed_q
+      raw = @query.to_s.strip.downcase
+      return { user: nil, domain: nil, full: nil } if raw.empty?
+      parts = raw.split('@')
+      if parts.size >= 2
+        u = parts.first
+        d = parts.last
+        { user: u, domain: d, full: "#{u}@#{d}" }
+      else
+        { user: raw, domain: nil, full: nil }
+      end
+    end
+
+
+    def exact_should_clauses
+      p = parsed_q
+      clauses = []
+      if p[:domain] && p[:full]
+        clauses << { term: { "username.exact": { value: p[:full], boost: 600.0 } } }
+      elsif p[:user]
+        clauses << { term: { "username_without_domain": { value: p[:user], boost: 500.0 } } }
+      end
+      if (dn = @query.to_s.strip.downcase).present?
+        clauses << { term: { "display_name.exact": { value: dn, boost: 10.0 } } }
+      end
+      clauses
     end
 
     # This function limits results to only the accounts the user is following

@@ -60,6 +60,9 @@ tr:
       deleted: Silindi
       demote: Düşür
       destroyed_msg: "%{username} adlı kullanıcının verilerinin silinmesi sıraya alındı"
+      force_destroyed_msg: "%{username} kullanıcısı tüm verileriyle birlikte tamamen silindi"
+      force_delete: "Zorla Sil (Tamamen)"
+      force_delete_confirm: "Bu kullanıcıyı ve TÜM verilerini KALICI olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!"
       disable: Dondur
       disable_sign_in_token_auth: E-posta token doğrulamayı devre dışı bırak
       disable_two_factor_authentication: 2 aşamalı doğrulamayı kapat
@@ -159,6 +162,10 @@ tr:
       title: Hesaplar
       unblock_email: E-posta adresinin engelini kaldır
       unblocked_email_msg: "%{username} kişisinin e-posta adresinin engeli başarıyla kaldırıldı"
+      revoke_sessions: Tüm Oturumları Kapat
+      revoke_sessions_confirm: "%{username} kullanıcısının tüm aktif oturumlarını ve erişim tokenlarını silmek istediğinizden emin misiniz? Bu işlem kullanıcıyı tüm cihazlarından çıkış yapmaya zorlayacaktır."
+      revoked_sessions_msg: "%{username} kullanıcısının tüm oturumları ve erişim tokenları başarıyla silindi"
+      revoke_sessions_error: "Sadece yerel kullanıcıların oturumları silinebilir"
       unconfirmed_email: Onaylanmamış e-posta
       undo_sensitized: Hassaslığı geri al
       undo_silenced: Susturmayı geri al
@@ -857,7 +864,6 @@ tr:
       preferences_bildirim: Bildirim Ayarları
       preferences_feedback: Geribildirim Ayarları
       feedback_comments: Yorumunuz
-      feedback_description: Düşüncelerinizi bizimle paylaşın. Önerileriniz, bulduğunuz hatalar veya sistemle ilgili herhangi bir görüşünüz olabilir.
     site_uploads:
       delete: Yüklenen dosyayı sil
       destroyed_msg: Site yüklemesi başarıyla silindi!

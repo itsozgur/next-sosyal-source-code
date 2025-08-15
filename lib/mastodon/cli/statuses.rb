@@ -93,6 +93,8 @@ module Mastodon::CLI
       scope.reorder(nil).in_batches(of: options[:batch_size]) do |relation|
         ids        = relation.pluck(:id)
         processed += ids.count
+        # Delete status_views first to avoid foreign key constraint violations
+        StatusView.where(status_id: ids).delete_all
         removed   += Status.unscoped.where(id: ids).delete_all
         progress.increment
       end

@@ -21,6 +21,10 @@ class AccountPolicy < ApplicationPolicy
     record.suspended_temporarily? && role.can?(:delete_user_data)
   end
 
+  def force_destroy?
+    role.name == 'Owner' && !record.instance_actor?
+  end
+
   def unsuspend?
     role.can?(:manage_users) && record.suspension_origin_local?
   end
@@ -59,6 +63,11 @@ class AccountPolicy < ApplicationPolicy
 
   def unblock_email?
     role.can?(:manage_users)
+  end
+
+  def revoke_sessions?
+    role_allowed = %w[Owner Admin Moderator].include?(role.name)
+    role_allowed && role.overrides?(record.user_role) && record.local? && record.user.present?
   end
 
   def review?

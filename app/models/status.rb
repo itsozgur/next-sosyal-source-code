@@ -434,6 +434,39 @@ class Status < ApplicationRecord
   def prepare_contents
     text&.strip!
     spoiler_text&.strip!
+    limit_hashtags!
+  end
+  def limit_hashtags!
+    return unless local? && !reblog? && text.present?
+    
+    max_hashtags = ENV.fetch('MAX_HASHTAGS_PER_POST', '3').to_i
+    hashtags = Extractor.extract_hashtags(text)
+    
+    if hashtags.size > max_hashtags
+      # We need to process hashtags in order they appear, keeping first max_hashtags
+      # and converting the rest to plain text
+      
+      modified_text = text.dup
+      hashtag_count = 0
+      
+      # Find all hashtag matches in order and process them
+      modified_text.gsub!(/\B#(\w+)/) do |match|
+        hashtag_count += 1
+        if hashtag_count <= max_hashtags
+          match  # Keep the hashtag as is
+        else
+          $1     # Remove # symbol, keep just the text
+        end
+      end
+      
+      # Clean up extra spaces but preserve line breaks
+      modified_text.gsub!(/ +/, ' ')  # Multiple spaces to single space
+      modified_text.gsub!(/\n +/, "\n")  # Remove spaces at start of new lines
+      modified_text.gsub!(/ +\n/, "\n")  # Remove spaces before line breaks
+      modified_text.strip!
+      
+      self.text = modified_text
+    end
   end
 
   def set_reblog

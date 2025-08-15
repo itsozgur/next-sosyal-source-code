@@ -46,6 +46,8 @@ import {
 import Status from '../components/status';
 import { deleteModal } from '../initial_state';
 import { makeGetStatus, makeGetPictureInPicture } from '../selectors';
+import { useEffect } from 'react';
+import { fetchStatus } from '../actions/statuses';
 
 const makeMapStateToProps = () => {
   const getStatus = makeGetStatus();
@@ -237,6 +239,18 @@ const mapDispatchToProps = (dispatch, { contextType }) => ({
     }
   },
 
+  fetchStatus: (id) => dispatch(fetchStatus(id)),
+
 });
 
-export default injectIntl(connect(makeMapStateToProps, mapDispatchToProps)(Status));
+const StatusContainer = (props) => {
+  const { status, id, fetchStatus } = props;
+  useEffect(() => {
+    if (!status && id) {
+      fetchStatus(id);
+    }
+  }, [status, id, fetchStatus]);
+  return <Status {...props} />;
+};
+
+export default injectIntl(connect(makeMapStateToProps, mapDispatchToProps)(StatusContainer));

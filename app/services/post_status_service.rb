@@ -41,7 +41,6 @@ class PostStatusService < BaseService
     return idempotency_duplicate if idempotency_given? && idempotency_duplicate?
 
     validate_media!
-    validate_language!
     preprocess_attributes!
 
     if scheduled?
@@ -147,17 +146,6 @@ class PostStatusService < BaseService
     raise Mastodon::ValidationError, I18n.t('media_attachments.validations.not_ready') if @media.any?(&:not_processed?)
   end
 
-  def validate_language!
-    return if @options[:language].blank?
-
-    # Restrict posting to only Turkish and English
-    allowed_languages = %w[tr en]
-    provided_language = @options[:language].to_s.downcase
-
-    unless allowed_languages.include?(provided_language)
-      raise Mastodon::ValidationError, I18n.t('statuses.validations.unsupported_language', allowed: allowed_languages.join(', '))
-    end
-  end
 
   def process_mentions_service
     ProcessMentionsService.new

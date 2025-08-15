@@ -2,7 +2,7 @@
 
 module Paperclip
   class LazyThumbnail < Paperclip::Processor
-    GIF_MAX_FPS = 30
+    GIF_MAX_FPS = 60
     GIF_MAX_FRAMES = 3000
     GIF_PALETTE_COLORS = 32
 

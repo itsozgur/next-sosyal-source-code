@@ -3,7 +3,7 @@
 class PostProcessMediaWorker
   include Sidekiq::Worker
 
-  sidekiq_options retry: 1, dead: false
+  sidekiq_options retry: 1, dead: false, queue: 'video_process'
 
   sidekiq_retries_exhausted do |msg|
     media_attachment_id = msg['args'].first

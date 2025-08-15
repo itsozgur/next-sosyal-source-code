@@ -60,6 +60,9 @@ en:
       deleted: Deleted
       demote: Demote
       destroyed_msg: "%{username}'s data is now queued to be deleted imminently"
+      force_destroyed_msg: "%{username} has been completely deleted with all data"
+      force_delete: "Force Delete (Complete)"
+      force_delete_confirm: "Are you sure you want to PERMANENTLY delete this user and ALL their data? This action cannot be undone!"
       disable: Freeze
       disable_sign_in_token_auth: Disable email token authentication
       disable_two_factor_authentication: Disable 2FA

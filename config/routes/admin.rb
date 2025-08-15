@@ -118,6 +118,8 @@ namespace :admin do
       post :approve
       post :reject
       post :unblock_email
+      post :revoke_sessions
+      post :force_destroy
     end
 
     collection do

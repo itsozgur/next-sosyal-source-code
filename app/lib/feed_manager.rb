@@ -440,7 +440,8 @@ class FeedManager
     return            if receiver_id == status.account_id
     return :filter    if status.reply? && (status.in_reply_to_id.nil? || status.in_reply_to_account_id.nil?)
     return :skip_home if timeline_type != :list && crutches[:exclusive_list_users][status.account_id].present?
-    return :filter    if crutches[:languages][status.account_id].present? && status.language.present? && !crutches[:languages][status.account_id].include?(status.language)
+    # Language filtering disabled - show all posts regardless of language
+    # return :filter    if crutches[:languages][status.account_id].present? && status.language.present? && !crutches[:languages][status.account_id].include?(status.language)
 
     check_for_blocks = crutches[:active_mentions][status.id] || []
     check_for_blocks.push(status.account_id)

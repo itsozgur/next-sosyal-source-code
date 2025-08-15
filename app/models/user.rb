@@ -68,7 +68,7 @@ class User < ApplicationRecord
   # every day. Raising the duration reduces the amount of expensive
   # RegenerationWorker jobs that need to be run when those people come
   # to check their feed
-  ACTIVE_DURATION = ENV.fetch('USER_ACTIVE_DAYS', 7).to_i.days.freeze
+  ACTIVE_DURATION = ENV.fetch('USER_ACTIVE_DAYS', 1).to_i.days.freeze
 
   devise :two_factor_authenticatable,
          otp_secret_encryption_key: Rails.configuration.x.otp_secret,
@@ -341,21 +341,24 @@ class User < ApplicationRecord
   end
 
   def revoke_access!
-    Doorkeeper::AccessGrant.by_resource_owner(self).update_all(revoked_at: Time.now.utc)
+    # Access grant'leri tamamen sil
+    Doorkeeper::AccessGrant.by_resource_owner(self).delete_all
 
+    # Access token'ları tamamen sil
     Doorkeeper::AccessToken.by_resource_owner(self).in_batches do |batch|
-      batch.update_all(revoked_at: Time.now.utc)
-      Web::PushSubscription.where(access_token_id: batch).delete_all
-
-      # Revoke each access token for the Streaming API, since `update_all``
-      # doesn't trigger ActiveRecord Callbacks:
-      # TODO: #28793 Combine into a single topic
+      # Önce streaming API'ye kill event'i gönder
       payload = Oj.dump(event: :kill)
       redis.pipelined do |pipeline|
         batch.ids.each do |id|
           pipeline.publish("timeline:access_token:#{id}", payload)
         end
       end
+
+      # Push subscription'ları sil
+      Web::PushSubscription.where(access_token_id: batch).delete_all
+
+      # Token'ları tamamen sil
+      batch.delete_all
     end
   end
 
@@ -494,6 +497,9 @@ class User < ApplicationRecord
     ActivityTracker.record('activity:logins', id)
     UserMailer.welcome(self).deliver_later(wait: 1.hour)
     TriggerWebhookWorker.perform_async('account.approved', 'Account', account_id)
+    
+    # Yeni kullanıcı için otomatik takip işlemi
+    follow_default_accounts!
   end
 
   def prepare_returning_user!
@@ -533,5 +539,37 @@ class User < ApplicationRecord
 
   def trigger_webhooks
     TriggerWebhookWorker.perform_async('account.created', 'Account', account_id)
+  end
+
+  private
+
+  # Yeni kullanıcılar için varsayılan hesapları takip et
+  def follow_default_accounts!
+    return if Setting.bootstrap_timeline_accounts.blank?
+
+    # Bootstrap timeline hesaplarını al
+    usernames = Setting.bootstrap_timeline_accounts.split(',').map(&:strip).reject(&:blank?)
+    return if usernames.empty?
+
+    # Her bir kullanıcı adı için takip işlemi yap
+    usernames.each do |username|
+      begin
+        target_account = Account.find_local(username)
+        next unless target_account&.user&.confirmed? && target_account&.user&.approved?
+
+        result = FollowService.new.call(
+          account, 
+          target_account, 
+          reblogs: true, 
+          notify: false, 
+          bypass_locked: true,
+          bypass_limit: true
+        )
+      rescue => e
+        Rails.logger.error "Otomatik takip hatası (#{username}): #{e.message}"
+      end
+    end
+    # tek seferlik feedi besle.
+    regenerate_feed!
   end
 end

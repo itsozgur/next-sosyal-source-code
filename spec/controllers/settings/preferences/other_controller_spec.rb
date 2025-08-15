@@ -29,7 +29,9 @@ RSpec.describe Settings::Preferences::OtherController do
       expect(response).to redirect_to(settings_preferences_other_path)
       user.reload
       expect(user.locale).to eq 'en'
-      expect(user.chosen_languages).to eq %w(es fr)
+      # expect(user.chosen_languages).to eq %w(es fr)
+      # chosen_languages should not be updated since it's disabled
+      expect(user.chosen_languages).to eq []
     end
 
     it 'updates user settings' do

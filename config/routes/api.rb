@@ -184,6 +184,7 @@ namespace :api, format: false do
       resource :proxy_info, only: :show, controller: :proxy_info
       resources :relationships, only: :index
       resources :familiar_followers, only: :index
+      resource :sessions, only: :destroy, controller: :sessions
     end
 
     resources :accounts, only: [:index, :create, :show] do
@@ -238,6 +239,11 @@ namespace :api, format: false do
 
     namespace :push do
       resource :subscription, only: [:create, :show, :update, :destroy]
+    end
+
+    # Auth endpoints
+    namespace :auth do
+      post :login
     end
 
     namespace :admin do
@@ -369,4 +375,5 @@ namespace :api, format: false do
       end
     end
   end
+
 end

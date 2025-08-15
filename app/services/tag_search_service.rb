@@ -27,12 +27,51 @@ class TagSearchService < BaseService
 
   def from_elasticsearch
     qb = HybridTagQueryBuilder.new(@query)
-    definition = TagsIndex.query(function_score_wrapper(qb.build))
+    base = qb.build
+    boosted = apply_exact_and_recent_fuzzy_boosts(base)
+
+    definition = TagsIndex.query(function_score_wrapper(boosted))
     definition = definition.filter(elastic_search_filter) if @options[:exclude_unreviewed]
 
     ensure_exact_match(definition.limit(@limit).offset(@offset).objects.compact)
   rescue Faraday::ConnectionFailed, Parslet::ParseFailed
     nil
+  end
+
+  def apply_exact_and_recent_fuzzy_boosts(inner_query)
+    normalized = Tag.normalize(@query)
+    recent_filter = { range: { last_status_at: { gte: 'now-14d' } } }
+    {
+      bool: {
+        must:   [inner_query],
+        should: [
+          # 1) BİREBİR eşleşme (çok güçlü)
+          { term: { "name.exact": { value: normalized, boost: 100.0 } } },
+
+          # 2) Son 14 günde 1 harf fark (yüksek)
+          {
+            bool: {
+              filter: recent_filter,
+              should: [
+                { match: { name: { query: normalized, fuzziness: 1, operator: 'and', prefix_length: 0, max_expansions: 50, boost: 8.0 } } }
+              ],
+              minimum_should_match: 1
+            }
+          },
+
+          # 3) Son 14 günde 2 harf fark (orta)
+          {
+            bool: {
+              filter: recent_filter,
+              should: [
+                { match: { name: { query: normalized, fuzziness: 2, operator: 'and', prefix_length: 0, max_expansions: 50, boost: 4.0 } } }
+              ],
+              minimum_should_match: 1
+            }
+          }
+        ]
+      }
+    }
   end
 
   # Since the ElasticSearch Query doesn't guarantee the exact match will be the
@@ -59,7 +98,7 @@ class TagSearchService < BaseService
           { field_value_factor: { field: 'usage', modifier: 'log2p', missing: 0 } },
           { gauss: { last_status_at: { scale: '7d', offset: '14d', decay: 0.5 } } }
         ],
-        boost_mode: 'multiply'
+        boost_mode: 'multiply'  # leksikal * (usage * tazelik)
       }
     }
   end

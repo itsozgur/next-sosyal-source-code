@@ -2851,7 +2851,7 @@ a.account__display-name {
 }
 
 .display-name__html {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .status__relative-time,
@@ -4193,7 +4193,7 @@ $ui-header-logo-wordmark-width: 99px;
   align-items: center;
   gap: 5px;
   font-size: 16px;
-  padding: 13px;
+  padding: 10px;
   text-decoration: none;
   overflow: hidden;
   white-space: nowrap;
@@ -4286,6 +4286,8 @@ $ui-header-logo-wordmark-width: 99px;
       a {
         color: $darker-text-color;
         text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
       }
     }
 
@@ -8934,8 +8936,8 @@ noscript {
       a {
         color: $darker-text-color;
         text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 15px;
+        font-weight: 600;
         display: block;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -11066,7 +11068,7 @@ noscript {
   }
 
   &--moderation-warning &__icon {
-    color: #6161ff;
+    color: #1890FF;
   }
 
   &--follow-request &__actions {

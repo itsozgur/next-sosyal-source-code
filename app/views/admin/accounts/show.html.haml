@@ -31,6 +31,11 @@
 
 - if @account.local? && @account.user.nil?
   = link_to t('admin.accounts.unblock_email'), unblock_email_admin_account_path(@account.id), method: :post, class: 'button' if can?(:unblock_email, @account) && CanonicalEmailBlock.exists?(reference_account_id: @account.id)
+  %br/
+  - if can?(:force_destroy, @account)
+    = link_to t('admin.accounts.force_delete'), force_destroy_admin_account_path(@account.id), method: :post, data: { confirm: t('admin.accounts.force_delete_confirm') }, class: 'button button--destructive', style: 'background-color: #e74c3c; border-color: #c0392b; margin-top: 10px;'
+  - else
+    %p.muted-hint Debug: force_destroy permission denied. Current role: #{current_user&.role&.name}, Account instance_actor: #{@account.instance_actor?}
 - else
   .table-wrapper
     %table.table.inline-table

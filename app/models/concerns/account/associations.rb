@@ -78,5 +78,8 @@ module Account::Associations
     # Badges
     has_many :account_badges, inverse_of: :account, dependent: :destroy
     has_many :badges, through: :account_badges
+
+    # Status views
+    has_many :status_views, inverse_of: :account, dependent: :delete_all
   end
 end

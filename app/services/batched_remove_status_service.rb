@@ -31,7 +31,12 @@ class BatchedRemoveStatusService < BaseService
     # transaction lock the database, but we use the delete method instead
     # of destroy to avoid all callbacks. We rely on foreign keys to
     # cascade the delete faster without loading the associations.
-    statuses_and_reblogs.each_slice(50) { |slice| Status.where(id: slice.map(&:id)).delete_all }
+    # First delete status_views to avoid foreign key constraint violations
+    statuses_and_reblogs.each_slice(50) do |slice|
+      status_ids = slice.map(&:id)
+      StatusView.where(status_id: status_ids).delete_all
+      Status.where(id: status_ids).delete_all
+    end
 
     # Since we skipped all callbacks, we also need to manually
     # deindex the statuses

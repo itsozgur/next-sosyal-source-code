@@ -12,7 +12,7 @@ import ImmutablePureComponent from 'react-immutable-pure-component';
 import CheckIcon from '@/material-icons/400-24px/check.svg?react';
 import LockIcon from '@/material-icons/400-24px/lock.svg?react';
 import MoreHorizIcon from '@/material-icons/400-24px/more_horiz.svg?react';
-import NotificationsIcon from '@/material-icons/400-24px/notifications.svg?react';
+import NotificationsIcon from '@/material-icons/400-24px/notification-disable.svg?react';
 import NotificationsActiveIcon from '@/material-icons/400-24px/notifications_active-fill.svg?react';
 import ShareIcon from '@/material-icons/400-24px/share.svg?react';
 import { Avatar } from 'mastodon/components/avatar';

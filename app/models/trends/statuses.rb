@@ -39,11 +39,13 @@ class Trends::Statuses < Trends::Base
     end
 
     def preferred_languages
-      if @account&.chosen_languages.present?
-        @account.chosen_languages
-      else
-        @locale
-      end
+      # Language filtering disabled - return nil to show all languages
+      nil
+      # if @account&.chosen_languages.present?
+      #   @account.chosen_languages
+      # else
+      #   @locale
+      # end
     end
   end
 

@@ -4,6 +4,13 @@ class TagsIndex < Chewy::Index
   include DatetimeClampingConcern
 
   settings index: index_preset(refresh_interval: '30s'), analysis: {
+    normalizer: {
+      lowercase_icu: {
+        type: 'custom',
+        filter: %w[lowercase icu_normalizer icu_folding]
+      }
+    },
+
     analyzer: {
       content: {
         tokenizer: 'keyword',
@@ -41,7 +48,10 @@ class TagsIndex < Chewy::Index
   end
 
   root date_detection: false do
-    field(:name, type: 'text', analyzer: 'content', value: :display_name) { field(:edge_ngram, type: 'text', analyzer: 'edge_ngram', search_analyzer: 'content') }
+    field(:name, type: 'text', analyzer: 'content', value: :display_name) do
+      field(:edge_ngram, type: 'text', analyzer: 'edge_ngram', search_analyzer: 'content')
+      field(:exact, type: 'keyword', normalizer: 'lowercase_icu')
+    end
     field(:reviewed, type: 'boolean', value: ->(tag) { tag.reviewed? })
     field(:usage, type: 'long', value: ->(tag, crutches) { tag.history.aggregate(crutches.time_period).accounts })
     field(:last_status_at, type: 'date', value: ->(tag) { clamp_date(tag.last_status_at || tag.created_at) })

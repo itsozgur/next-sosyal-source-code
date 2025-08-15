@@ -115,9 +115,12 @@ const StatusWithInView = (props) => {
   });
 
   const [timer, setTimer] = useState(null);
-  const statusId = props.status.get('id');
+
+  // Compute safely to avoid accessing .get on null
+  const statusId = props.status && props.status.get ? props.status.get('id') : null;
 
   useEffect(() => {
+    if (!statusId) return;
 
     const alreadyViewed = viewedStatusIds.has(statusId);
     
@@ -146,7 +149,12 @@ const StatusWithInView = (props) => {
         clearTimeout(timer);
       }
     };
-  }, [inView, statusId]); 
+  }, [inView, statusId, timer]); 
+
+  // After hooks: render fallback if status is still missing
+  if (!props.status || !props.status.get) {
+    return <div>Gönderi yükleniyor veya bulunamadı.</div>;
+  }
 
   const setRefs = (element) => {
     inViewRef(element);

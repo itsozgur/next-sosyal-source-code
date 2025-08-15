@@ -226,7 +226,31 @@ const LinkFooter = ({ identity, multiColumn, onLogout, intl }) => {
             <Link to='/privacy-policy' target={multiColumn ? '_blank' : undefined} rel='privacy-policy'> <FormattedMessage id='footer.privacy_policy' defaultMessage='Privacy policy' /> </Link>
           </>
         )}
+        {DividingCircle}
+        <a href='https://sosyal.teknofest.app/kaynak-kod' target='_blank' rel='noopener'><FormattedMessage id='footer.source_code' defaultMessage='View Source Code' /></a>
+      </p>
 
+      <p>
+        <strong>Mastodon</strong>{' '}
+        <a href='https://joinmastodon.org' target='_blank' rel='noopener'>
+          <FormattedMessage id='footer.about' defaultMessage='About' />
+        </a>
+        {DividingCircle}
+        <Link to='/keyboard-shortcuts'>
+          <FormattedMessage
+            id='footer.keyboard_shortcuts'
+            defaultMessage='Keyboard shortcuts'
+          />
+        </Link>
+        {DividingCircle}
+        <a href={source_url} rel='noopener' target='_blank'>
+          <FormattedMessage
+            id='footer.source_code'
+            defaultMessage='View source code'
+          />
+        </a>
+        {DividingCircle}
+        <span className='version'>v{version}</span>
       </p>
     </div>
   );

@@ -35,7 +35,11 @@
         = link_to t('admin.accounts.perform_full_suspension'), new_admin_account_action_path(account.id, type: 'suspend'), class: 'button'
     %div
       - if account.local?
+        - if account.user_approved? && can?(:revoke_sessions, account)
+          = link_to t('admin.accounts.revoke_sessions'), revoke_sessions_admin_account_path(account.id), method: :post, data: { confirm: t('admin.accounts.revoke_sessions_confirm', username: account.acct) }, class: 'button button--destructive'
         - if !account.memorial? && account.user_approved? && can?(:memorialize, account)
           = link_to t('admin.accounts.memorialize'), memorialize_admin_account_path(account.id), method: :post, data: { confirm: t('admin.accounts.are_you_sure') }, class: 'button button--destructive'
+        - if can?(:force_destroy, account)
+          = link_to t('admin.accounts.force_delete'), force_destroy_admin_account_path(account.id), method: :post, data: { confirm: t('admin.accounts.force_delete_confirm') }, class: 'button button--destructive', style: 'background-color: #e74c3c; border-color: #c0392b;'
       - elsif can?(:redownload, account)
         = link_to t('admin.accounts.redownload'), redownload_admin_account_path(account.id), method: :post, class: 'button'

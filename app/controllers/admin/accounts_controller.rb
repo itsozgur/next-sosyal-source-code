@@ -4,7 +4,7 @@ module Admin
   class AccountsController < BaseController
     before_action :set_account, except: [:index, :batch]
     before_action :require_remote_account!, only: [:redownload]
-    before_action :require_local_account!, only: [:enable, :memorialize, :approve, :reject]
+    before_action :require_local_account!, only: [:enable, :memorialize, :approve, :reject, :revoke_sessions]
 
     def index
       authorize :account, :index?
@@ -72,6 +72,33 @@ module Admin
       redirect_to admin_account_path(@account.id), notice: I18n.t('admin.accounts.destroyed_msg', username: @account.acct)
     end
 
+    def force_destroy
+      authorize @account, :force_destroy?
+
+        begin
+        StatusView.where(account_id: @account.id).delete_all
+
+        status_ids = @account.statuses.pluck(:id)
+        if status_ids.any?
+          Status.where(quoted_status_id: status_ids).update_all(quoted_status_id: nil)
+        end
+
+        # Identity kayıtlarını temizle
+        user = @account.user
+        if user
+          Identity.where(user_id: user.id).delete_all
+          Identity.where(uid: @account.username).delete_all
+        end
+
+        # DeleteAccountService'i çağır (status_views ve diğer her şeyi doğru sırayla silecek)
+        DeleteAccountService.new.call(@account, reserve_username: false, reserve_email: false)
+
+        redirect_to admin_accounts_path, notice: I18n.t('admin.accounts.force_destroyed_msg', username: @account.acct)
+      rescue => e
+        redirect_to admin_accounts_path, alert: "Silme işleminde hata: #{e.message}"
+      end
+    end
+
     def unsensitive
       authorize @account, :unsensitive?
       @account.unsensitize!
@@ -133,6 +160,21 @@ module Admin
       log_action :unblock_email, @account
 
       redirect_to admin_account_path(@account.id), notice: I18n.t('admin.accounts.unblocked_email_msg', username: @account.acct)
+    end
+
+    def revoke_sessions
+      authorize @account, :revoke_sessions?
+
+      if @account.local? && @account.user.present?
+        @account.user.session_activations.destroy_all
+        @account.user.revoke_access!
+
+        log_action :revoke_sessions, @account
+
+        redirect_to admin_account_path(@account.id), notice: I18n.t('admin.accounts.revoked_sessions_msg', username: @account.acct)
+      else
+        redirect_to admin_account_path(@account.id), alert: I18n.t('admin.accounts.revoke_sessions_error')
+      end
     end
 
     private

@@ -8,6 +8,7 @@
   - [pull]
   - [scheduler]
   - [views, 4]
+  - [video_process, 7]
 
 :scheduler:
   :listened_queues_only: true
@@ -17,7 +18,7 @@
       class: Scheduler::ScheduledStatusesScheduler
       queue: scheduler
     trends_refresh_scheduler:
-      every: '45m'
+      every: '5m'
       class: Scheduler::Trends::RefreshScheduler
       queue: scheduler
     trends_review_notifications_scheduler:

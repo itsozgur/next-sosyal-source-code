@@ -170,7 +170,7 @@ class NavigationPanel extends Component {
               <ColumnLink transparent to='/conversations' icon='at' iconComponent={AlternateEmailIcon} text={intl.formatMessage(messages.direct)} />
               <ColumnLink transparent to='/bookmarks' icon='bookmarks' iconComponent={BookmarksIcon} activeIconComponent={BookmarksIcon} text={intl.formatMessage(messages.bookmarks)} />
               <ColumnLink transparent to='/favourites' icon='star' iconComponent={StarIcon} activeIconComponent={StarIcon} text={intl.formatMessage(messages.favourites)} />
-              <ColumnLink transparent to='/lists' icon='list-ul' iconComponent={ListAltIcon} activeIconComponent={ListAltIcon} text={intl.formatMessage(messages.lists)} />
+              {/* <ColumnLink transparent to='/lists' icon='list-ul' iconComponent={ListAltIcon} activeIconComponent={ListAltIcon} text={intl.formatMessage(messages.lists)} /> */}
 
               <ListPanel />
 

@@ -62,8 +62,8 @@ class Settings::Preferences::FeedbackController < Settings::BaseController
 
   def user_params
     params.require(:user).permit(
-      :locale,
-      :chosen_languages
+      :locale
+      # :chosen_languages
     )
   end
 end 

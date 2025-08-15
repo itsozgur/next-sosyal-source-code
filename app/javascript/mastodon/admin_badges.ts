@@ -73,6 +73,7 @@ class AdminBadges {
   private selectedUser: User | null = null;
   private selectedBadge: Badge | null = null;
   private i18n: I18nMessages;
+  private lastUserId: string | null = null;
 
   constructor() {
     // Get i18n messages from data attributes
@@ -202,7 +203,7 @@ class AdminBadges {
           this.usersList.children.length === 0 &&
           !this.selectedUser
         ) {
-          this.loadUsers('', 1, false);
+          this.loadUsers('', false);
         }
 
         setTimeout(() => {
@@ -235,7 +236,7 @@ class AdminBadges {
 
         this.searchTimeout = window.setTimeout(() => {
           this.hasMoreUsers = true;
-          this.loadUsers(query, 1, false);
+          this.loadUsers(query, false);
         }, 300);
       });
     }
@@ -245,7 +246,7 @@ class AdminBadges {
         e.preventDefault();
 
         if (this.hasMoreUsers && !this.isLoading) {
-          this.loadUsers(this.currentQuery, this.currentPage + 1, true);
+          this.loadUsers(this.currentQuery, true);
         }
       });
     }
@@ -258,7 +259,7 @@ class AdminBadges {
 
         if (scrollTop + clientHeight >= scrollHeight - 5) {
           if (this.hasMoreUsers && !this.isLoading) {
-            this.loadUsers(this.currentQuery, this.currentPage + 1, true);
+            this.loadUsers(this.currentQuery, true);
           }
         }
       });
@@ -532,10 +533,11 @@ class AdminBadges {
     const displayName =
       user.display_name || (user.account && user.account.display_name);
 
-
     let badgesHtml = '';
     if (user.account && (user.account as any).badges) {
-      const badges = (user.account as any).badges.toJS ? (user.account as any).badges.toJS() : (user.account as any).badges;
+      const badges = (user.account as any).badges.toJS
+        ? (user.account as any).badges.toJS()
+        : (user.account as any).badges;
 
       if (badges && badges.length > 0) {
         const rankOneBadges = badges.filter((badge: any) => badge.rank === 1);
@@ -589,23 +591,25 @@ class AdminBadges {
 
   private async loadUsers(
     query: string = '',
-    page: number = 1,
     append: boolean = false,
   ): Promise<void> {
     if (this.isLoading) return;
 
     this.isLoading = true;
 
-    if (query.length > 0 || page > 1) {
+    if (query.length > 0 || append) {
       if (this.loadingIndicator) this.loadingIndicator.style.display = 'block';
     }
 
-    if (this.loadMoreBtn && page > 1) {
+    if (this.loadMoreBtn && append) {
       this.loadMoreBtn.disabled = true;
       this.loadMoreBtn.textContent = this.i18n.loading;
     }
 
-    const url = `/api/v1/admin/accounts?username=${encodeURIComponent(query)}&limit=20&page=${page}`;
+    let url = `/api/v1/admin/accounts?username=${encodeURIComponent(query)}&limit=20`;
+    if (append && this.lastUserId) {
+      url += `&max_id=${this.lastUserId}`;
+    }
 
     try {
       const response = await fetch(url, {
@@ -620,19 +624,20 @@ class AdminBadges {
 
       if (!append && this.usersList) {
         this.usersList.innerHTML = '';
-        this.currentPage = 1;
+        this.lastUserId = null;
       }
 
-      if (users.length === 0 && page === 1 && this.usersList) {
+      if (users.length === 0 && !append && this.usersList) {
         this.usersList.innerHTML = `<div class="no-results">${this.i18n.userNotFound}</div>`;
         this.hasMoreUsers = false;
       } else {
         users.forEach((user) => {
           this.usersList?.appendChild(this.createUserElement(user));
         });
-
         this.hasMoreUsers = users.length >= 20;
-        this.currentPage = page;
+        if (users.length > 0) {
+          this.lastUserId = users[users.length - 1].id;
+        }
       }
 
       if (this.hasMoreUsers && users.length > 0 && this.loadMoreContainer) {
@@ -652,7 +657,6 @@ class AdminBadges {
     } finally {
       this.isLoading = false;
       if (this.loadingIndicator) this.loadingIndicator.style.display = 'none';
-
       if (this.loadMoreBtn) {
         this.loadMoreBtn.disabled = false;
         if (!this.hasMoreUsers) {
@@ -870,7 +874,8 @@ class AdminBadges {
       'Badge removed successfully': this.i18n.badgeRemovedSuccess,
       'Badge already assigned': this.i18n.badgeAlreadyAssigned,
       'Badge not found on account': this.i18n.badgeNotFound,
-      'This badge has already been assigned to this user': this.i18n.badgeAlreadyAssigned,
+      'This badge has already been assigned to this user':
+        this.i18n.badgeAlreadyAssigned,
       'Badge successfully added!': this.i18n.badgeAddedSuccess,
       'Badge successfully removed!': this.i18n.badgeRemovedSuccess,
     };
@@ -923,7 +928,8 @@ class AdminBadges {
         if (this.addButton) this.addButton.innerHTML = `✅ ${this.i18n.added}`;
         this.showNotification(message, 'success');
       } else if (result.status === 422) {
-        const apiMessage = result.data.message || this.i18n.badgeAlreadyAssigned;
+        const apiMessage =
+          result.data.message || this.i18n.badgeAlreadyAssigned;
         const message = this.translateApiMessage(apiMessage);
         if (this.addButton)
           this.addButton.innerHTML = `⚠️ ${this.i18n.alreadyExists}`;

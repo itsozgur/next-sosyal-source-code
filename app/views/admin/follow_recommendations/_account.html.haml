@@ -5,7 +5,14 @@
     %table.accounts-table
       %tbody
         %tr
-          %td= account_link_to account
+          %td
+            = account_link_to account
+            - if account.account_badges.loaded? && account.account_badges.any? { |ab| ab.badge&.is_active? }
+              - highest_badge = account.account_badges.select { |ab| ab.badge&.is_active? }.min_by { |ab| ab.badge&.rank || 999 }
+              - if highest_badge
+                %span.badge{ style: 'background-color: #1da1f2; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-size: 12px;' }
+                  = material_symbol 'check'
+                  = highest_badge.badge.name
           %td.accounts-table__count.optional
             = friendly_number_to_human account.statuses_count
             %small= t('accounts.posts', count: account.statuses_count).downcase
